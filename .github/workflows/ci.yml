@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plugin:
+    name: Gradle build & verifyPlugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build plugin
+        run: ./gradlew :plugin:buildPlugin
+
+      - name: Verify plugin
+        run: ./gradlew :plugin:verifyPlugin
+
+  sidecar:
+    name: Sidecar — sync & vendored tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Vendoring pipeline: pull the pinned upstream SHA, apply patches, install
+      # sidecar deps, and run the vendored vitest suite. The script installs and
+      # tests internally, so this single step is the drift gate.
+      - name: Sync upstream & run vendored tests
+        run: node tools/sync-upstream.mjs
+
+      # Exercise the bundler so a broken esbuild config fails CI.
+      - name: Build sidecar bundles
+        working-directory: sidecar
+        run: npm run build
+
+  sync-dry-run:
+    name: Sync script dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Fast gate: verifies the manifest, repo reachability, and patch list
+      # without copying the tree or running tests.
+      - name: Sync upstream (dry run)
+        run: node tools/sync-upstream.mjs --dry-run

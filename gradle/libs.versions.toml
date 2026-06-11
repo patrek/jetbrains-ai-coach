@@ -1,0 +1,10 @@
+[versions]
+# Build against IntelliJ IDEA 2024.2 (build 242); the plugin only depends on
+# com.intellij.modules.platform so it installs in every JetBrains IDE.
+intellijPlatform = "2.16.0"
+intellijIdea = "2024.2.5"
+kotlin = "2.1.20"
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+intelliJPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellijPlatform" }
