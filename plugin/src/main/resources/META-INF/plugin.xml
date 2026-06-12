@@ -1,0 +1,18 @@
+<idea-plugin>
+    <id>com.aicoach.jetbrains</id>
+    <name>AI Coach</name>
+    <vendor url="https://github.com/patrek/ai-coach-jetbrains">AI Coach</vendor>
+
+    <description><![CDATA[
+        Analyze your AI coding assistant usage across Claude Code, Codex CLI, OpenCode,
+        and Copilot CLI. Read-only, zero telemetry.<br/>
+        <br/>
+        JetBrains IDE port of the
+        <a href="https://github.com/microsoft/AI-Engineering-Coach">AI Engineering Coach</a>
+        VS Code extension.
+    ]]></description>
+
+    <!-- Depend only on the platform module so the plugin installs in every
+         JetBrains IDE (IDEA, PyCharm, WebStorm, GoLand, Rider, ...). -->
+    <depends>com.intellij.modules.platform</depends>
+</idea-plugin>
