@@ -1,0 +1,190 @@
+/*
+ * Sidecar stdio RPC server.
+ *
+ * Speaks the upstream webview envelope over NDJSON (one JSON object per line):
+ *
+ *   in   { type:'request', id, method, params?, projectRoot? }
+ *        { type:'host-response', id, data }                 // reply to a host-request
+ *   out  { type:'hello', version, capabilities }            // handshake, sent first
+ *        { type:'progress', phase, detail, pct, ... }       // pushed during parse
+ *        { type:'dataReady', currentWorkspace }             // pushed when analyzer is built
+ *        { type:'response', id, data }                      // reply to a request
+ *        { type:'host-request', id, method, params }        // sidecar -> host (e.g. trust/*)
+ *
+ * On startup it parses the local CLI-harness logs (VS Code/Xcode discovery is
+ * patched out — see decision D8) and builds the `Analyzer`, queuing any requests
+ * that arrive mid-load. When stdin closes it exits, so it can never outlive its
+ * IDE host (orphan-prevention contract with part 3).
+ *
+ * The `projectRoot` envelope stamp is resolved per request (no mutable global
+ * scope) and threaded into the handlers that need a project rule layer.
+ */
+
+import * as readline from 'node:readline';
+import type { Readable } from 'node:stream';
+import { Analyzer } from '../vendor/core/analyzer';
+import { findLogsDirs, parseAllLogsViaWorker } from '../vendor/core/parser';
+import type { ParseResult, LoadProgress } from '../vendor/core/parser';
+import { errorResult, isString, isRecord } from '../vendor/webview/panel-shared';
+import { createHostTrustMemento, installTrustMemento } from './host-shims';
+import { resolveHandler } from './rpc-handlers';
+
+/** Protocol version reported in the `hello` handshake. */
+export const SIDECAR_PROTOCOL_VERSION = '1.0.0';
+
+/** Static capability flags the webview gates its UI on. The sidecar has no LLM
+ *  or GitHub auth of its own — those live in the IDE host. */
+export interface Capabilities {
+  llm: boolean;
+  github: boolean;
+}
+export const SIDECAR_CAPABILITIES: Capabilities = { llm: false, github: false };
+
+export interface RpcServerOptions {
+  /** Incoming NDJSON stream (defaults to process.stdin). */
+  input?: Readable;
+  /**
+   * Writes one already-serialized protocol line. Defaults to process.stdout.
+   * `main.ts` injects a writer captured BEFORE it redirects stdout to stderr,
+   * so vendored console output can never corrupt the protocol stream.
+   */
+  write?: (line: string) => void;
+}
+
+type IncomingRequest = {
+  id: string;
+  method: string;
+  params: Record<string, unknown>;
+  projectRoot?: string;
+};
+
+export class RpcServer {
+  private readonly input: Readable;
+  private readonly writeLine: (line: string) => void;
+  private analyzer: Analyzer | null = null;
+  private parseResult: ParseResult | null = null;
+  private dataReady = false;
+  private readonly pending: IncomingRequest[] = [];
+
+  constructor(opts: RpcServerOptions = {}) {
+    this.input = opts.input ?? process.stdin;
+    this.writeLine = opts.write ?? ((line) => process.stdout.write(line));
+  }
+
+  /** Start framing, emit the handshake, and kick off the data load. */
+  async start(): Promise<void> {
+    // Trust state is mirrored in-process for part 2 (no IDE host attached). The
+    // channel-backed adapter in host-shims is wired by part 3's bridge.
+    installTrustMemento(createHostTrustMemento());
+
+    const rl = readline.createInterface({ input: this.input, crlfDelay: Infinity });
+    rl.on('line', (line) => this.onLine(line));
+    // stdin close => the host is gone => exit so we never orphan.
+    this.input.on('end', () => this.shutdown());
+    rl.on('close', () => this.shutdown());
+
+    this.send({ type: 'hello', version: SIDECAR_PROTOCOL_VERSION, capabilities: SIDECAR_CAPABILITIES });
+
+    await this.loadData();
+  }
+
+  private send(message: Record<string, unknown>): void {
+    this.writeLine(`${JSON.stringify(message)}\n`);
+  }
+
+  private onLine(line: string): void {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    let msg: unknown;
+    try {
+      msg = JSON.parse(trimmed);
+    } catch {
+      return; // ignore non-JSON noise
+    }
+    if (!isRecord(msg) || msg.type !== 'request' || !isString(msg.id) || !isString(msg.method)) return;
+    if (msg.params !== undefined && !isRecord(msg.params)) return;
+
+    const request: IncomingRequest = {
+      id: msg.id,
+      method: msg.method,
+      params: isRecord(msg.params) ? msg.params : {},
+      projectRoot: isString(msg.projectRoot) ? msg.projectRoot : undefined,
+    };
+
+    if (!this.dataReady) {
+      this.pending.push(request);
+      return;
+    }
+    void this.dispatch(request);
+  }
+
+  private async dispatch(request: IncomingRequest): Promise<void> {
+    if (!this.analyzer || !this.parseResult) {
+      this.send({ type: 'response', id: request.id, data: errorResult('Sidecar not ready') });
+      return;
+    }
+    const handler = resolveHandler(request.method);
+    if (!handler) {
+      this.send({ type: 'response', id: request.id, data: errorResult(`Unknown method: ${request.method}`) });
+      return;
+    }
+    try {
+      const data = await handler({
+        analyzer: this.analyzer,
+        parseResult: this.parseResult,
+        params: request.params,
+        projectRoot: request.projectRoot,
+      });
+      this.send({ type: 'response', id: request.id, data });
+    } catch (err) {
+      this.send({ type: 'response', id: request.id, data: errorResult(err instanceof Error ? err.message : String(err)) });
+    }
+  }
+
+  private async loadData(): Promise<void> {
+    try {
+      // findLogsDirs is patched to [] — CLI harnesses are collected by the
+      // worker independently. With no sources the parse simply returns empty,
+      // so the sidecar still comes up ready and answers with empty data.
+      const dirs = findLogsDirs();
+      this.parseResult = await parseAllLogsViaWorker(dirs, (p) => this.onProgress(p));
+    } catch (err) {
+      process.stderr.write(`[sidecar] parse failed: ${err instanceof Error ? err.message : String(err)}\n`);
+      this.parseResult = this.emptyParseResult();
+    }
+
+    this.analyzer = new Analyzer(
+      this.parseResult.sessions,
+      this.parseResult.editLocIndex,
+      this.parseResult.workspaces,
+    );
+
+    // Ready BEFORE warmUp so queued requests are served immediately.
+    this.dataReady = true;
+    this.send({ type: 'dataReady', currentWorkspace: '' });
+
+    try {
+      await this.analyzer.warmUp((phase, detail, pct) => this.onProgress({ phase, detail, pct }));
+    } catch { /* warmUp is best-effort */ }
+
+    const queued = this.pending.splice(0, this.pending.length);
+    for (const request of queued) void this.dispatch(request);
+  }
+
+  private onProgress(p: Partial<LoadProgress> & { phase: number }): void {
+    this.send({ type: 'progress', ...p });
+  }
+
+  private emptyParseResult(): ParseResult {
+    return {
+      workspaces: new Map(),
+      sessions: [],
+      editLocIndex: new Map(),
+      sessionSourceIndex: new Map(),
+    };
+  }
+
+  private shutdown(): void {
+    process.exit(0);
+  }
+}

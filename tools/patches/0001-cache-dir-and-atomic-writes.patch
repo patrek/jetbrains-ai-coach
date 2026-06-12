@@ -1,0 +1,53 @@
+diff --git a/sidecar/vendor/core/cache.ts b/sidecar/vendor/core/cache.ts
+index aeb09f6..9b82dea 100644
+--- a/sidecar/vendor/core/cache.ts
++++ b/sidecar/vendor/core/cache.ts
+@@ -88,7 +88,8 @@ export interface CacheData {
+ 
+ /* ---- Paths ---- */
+ 
+-const CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '', '.copilot-analytics-cache');
++const CACHE_DIR = process.env.AI_COACH_CACHE_DIR
++  || path.join(process.env.HOME || process.env.USERPROFILE || '', '.ai-coach-jetbrains', 'cache');
+ const CACHE_FILE = path.join(CACHE_DIR, 'parsed.json');
+ const CACHE_META = path.join(CACHE_DIR, 'meta.json');
+ 
+@@ -305,26 +306,18 @@ export function saveCacheData(result: ParseResult, dirMetas: DirMetas): void {
+     const json = JSON.stringify(serializable);
+     const metaJson = JSON.stringify(meta);
+ 
+-    // Write immediately via worker thread so the large JSON string can be
+-    // garbage-collected from the main heap once transferred to the worker.
+-    const fallbackWrite = (): void => {
+-      fs.writeFile(CACHE_FILE, json, 'utf-8', () => {});
+-      fs.writeFile(CACHE_META, metaJson, 'utf-8', () => {});
+-    };
+-
+-    void import('worker_threads').then(({ Worker }) => {
+-      try {
+-        const w = new Worker(path.join(__dirname, 'cache-write-worker.js'), {
+-          workerData: { json, metaJson, f: CACHE_FILE, m: CACHE_META },
+-        });
+-        w.on('error', (e: Error) => console.warn('[cache] worker write error:', e.message));
+-        w.unref();
+-      } catch {
+-        fallbackWrite();
+-      }
+-    }).catch(() => {
+-      fallbackWrite();
+-    });
++    // Atomic, synchronous temp-file + rename writes (fork divergence, D1).
++    // Upstream offloads this to an unref'd worker thread, but the fork parses
++    // inside a short-lived child process that parser.ts kills the instant it
++    // returns its result — a deferred write would be lost before it lands. A
++    // synchronous write guarantees the cache is persisted before the child
++    // exits, which is what makes warm starts work; it also keeps writes atomic
++    // (a crash mid-write can never leave a torn cache). parsed.json is renamed
++    // before meta.json so the presence of meta implies parsed is complete.
++    fs.writeFileSync(`${CACHE_FILE}.tmp`, json, 'utf-8');
++    fs.renameSync(`${CACHE_FILE}.tmp`, CACHE_FILE);
++    fs.writeFileSync(`${CACHE_META}.tmp`, metaJson, 'utf-8');
++    fs.renameSync(`${CACHE_META}.tmp`, CACHE_META);
+   } catch (e) {
+     warnCore('cache', 'Cache write failed', e);
+   }
