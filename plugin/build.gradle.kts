@@ -1,3 +1,4 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
@@ -33,7 +34,11 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            recommended()
+            // Pin explicit STABLE releases (no EAP) so the gate is deterministic
+            // and fast. Covers the acceptance criterion — IDEA plus one non-IDEA
+            // IDE — exercising the platform-only dependency on both.
+            create(IntelliJPlatformType.IntellijIdeaCommunity, "2024.2.5")
+            create(IntelliJPlatformType.PyCharmCommunity, "2024.2.5")
         }
     }
 }
