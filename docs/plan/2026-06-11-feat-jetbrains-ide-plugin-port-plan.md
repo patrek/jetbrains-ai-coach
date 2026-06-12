@@ -129,6 +129,14 @@ The degrade rows mix extension methods and **core** `RpcMethodMap` methods: `gen
 | `generateRule`, `compileNlRule`, `explainOccurrence`, `generateLearningQuiz`, `generateLearningResources`, `generateCodeComparison`, `generateDidYouKnow`, `createSkill`, `generateSkillContent` | **Degrade**: typed `{error:'llm-unavailable'}` response + UI gated on `getCapabilities().llm === false`, with messaging pointing to the MCP tools in Claude Code | `host-shims.ts` + webview patch (D6) |
 | `reviewLocalRules` (core method) | **Shim** → opens `TrustApprovalDialog.kt` (upstream fires a VS Code command, `panel-rpc.ts:893` — must be intercepted by the bridge, never forwarded to the sidecar) | `WebviewBridge.kt` |
 
+> **Audit resolved (part 2):** the nine "audit" rows above are finalized in
+> [ADR 0009](../ADR/0009-extension-method-disposition.md). Outcome:
+> `getWorkspaceDeps` is ported in the sidecar now; `getSdlcToolAnalysis`,
+> `getSdlcRepoScan`, `installSkill`, `installCatalogItem`, `discoverCatalog` are
+> confirmed ports deferred to their UI parts; `getSdlcGitHubData` degrades
+> behind a `github:false` capability; `triageSkills`, `triageCatalog`,
+> `reviewContextFiles` degrade (LLM-dependent).
+
 Per-page consequence (Phase 6 produces the final audited table): Rules editor loses NL→rule and generate (manual DSL editing keeps working); Learning page loses quiz/resources/did-you-know (decide hide-page vs. static remainder after audit); Skills page keeps install/triage (if non-LLM) and loses generation.
 
 #### Theme mapping (23 variables — initial mapping, finalized in Phase 3)

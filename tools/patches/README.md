@@ -39,4 +39,6 @@ out of the vendored tree into the sidecar's own (non-vendored) code.
 
 | Patch | Introduced by | Purpose |
 | ----- | ------------- | ------- |
-| _(none yet)_ | part 1 | The pipeline ships with zero patches. |
+| `0001-cache-dir-and-atomic-writes.patch` | part 2 | Cache dir → `~/.ai-coach-jetbrains/cache/` (overridable via `AI_COACH_CACHE_DIR`) so the fork never collides with the VS Code extension's shared cache (decision D1), and `saveCacheData` writes **synchronously** via temp-file + rename. The fork parses in a child process that `parser.ts` kills the instant it returns its result, so upstream's deferred worker-thread write would be lost before it lands; the synchronous atomic write persists the cache before the child exits, which is what makes warm starts work. |
+| `0002-findlogsdirs-drop-vscode-xcode.patch` | part 2 | `findLogsDirs()` returns `[]` so only the CLI-harness collectors run (Claude Code, Codex, OpenCode, Copilot CLI); VS Code workspaceStorage and Xcode discovery are dropped from the path (decision D8). Updates the matching `parser-main.test.ts` case so the vendored suite stays green. |
+| `0003-panel-shared-type-only-vscode.patch` | part 2 | Make `panel-shared.ts`'s `vscode` import type-only. It is used only for types, but a runtime `import * as vscode` would crash the sidecar at load (no `vscode` module outside the IDE). Lets the sidecar reuse the vendored RPC handler map. |

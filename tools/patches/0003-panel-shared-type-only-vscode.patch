@@ -1,0 +1,13 @@
+diff --git a/sidecar/vendor/webview/panel-shared.ts b/sidecar/vendor/webview/panel-shared.ts
+index 4d8553c..add915e 100644
+--- a/sidecar/vendor/webview/panel-shared.ts
++++ b/sidecar/vendor/webview/panel-shared.ts
+@@ -5,7 +5,7 @@
+ 
+ import * as crypto from 'crypto';
+ import * as path from 'path';
+-import * as vscode from 'vscode';
++import type * as vscode from 'vscode';
+ import { WebviewMessage, ErrorResult } from '../core/types';
+ 
+ export type RequestMessage = Extract<WebviewMessage, { type: 'request' }>;
