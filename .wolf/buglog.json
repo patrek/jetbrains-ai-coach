@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-06-12T20:41:03.541Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/src/rpc-server.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:03.541Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-06-12T20:41:09.072Z",
+      "error_message": "Missing guard clause",
+      "file": "sidecar/src/rpc-server.ts",
+      "root_cause": "No early return/throw for edge case: !isRecord(msg",
+      "fix": "Added guard clause: if (!isRecord(msg)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:09.072Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-06-12T20:41:14.358Z",
+      "error_message": "Significant refactor of ",
+      "file": "sidecar/test/harness.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3→6 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:14.358Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-06-12T20:41:20.550Z",
+      "error_message": "Missing guard clause",
+      "file": "sidecar/test/harness.ts",
+      "root_cause": "No early return/throw for edge case: this.exited",
+      "fix": "Added guard clause: if (this.exited)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:20.550Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-06-12T20:47:30.595Z",
+      "error_message": "Significant refactor of ",
+      "file": "sidecar/esbuild.mjs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 14→22 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:47:30.595Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-06-12T20:48:00.632Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "sidecar/esbuild.mjs",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:48:00.632Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-06-12T21:34:41.364Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→4 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T21:34:41.364Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-06-12T21:36:00.505Z",
+      "error_message": "Wrong reference: trust should be the",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
+      "root_cause": "Used \"trust\" instead of \"the\"",
+      "fix": "Changed trust → the",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T21:36:00.505Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-06-12T21:36:27.269Z",
+      "error_message": "Incorrect value in code",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "root_cause": "Had `~/.nvm/versions/node/*`",
+      "fix": "Changed to `~/.nvm/versions/node`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-12T21:36:35.789Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-06-12T21:36:46.621Z",
+      "error_message": "Incorrect value in code",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "root_cause": "Had `/sidecar/*`",
+      "fix": "Changed to `/sidecar`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-12T21:36:59.656Z"
+    }
+  ]
+}

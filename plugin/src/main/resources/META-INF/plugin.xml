@@ -15,4 +15,27 @@
     <!-- Depend only on the platform module so the plugin installs in every
          JetBrains IDE (IDEA, PyCharm, WebStorm, GoLand, Rider, ...). -->
     <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- The dashboard tool window. Lazy: the factory only builds JCEF when
+             the window is first shown (DumbAware so it opens during indexing). -->
+        <toolWindow
+            id="AI Coach"
+            anchor="right"
+            icon="/icons/coach.svg"
+            factoryClass="com.aicoach.jetbrains.toolwindow.CoachToolWindowFactory"/>
+
+        <!-- One application-level sidecar shared by every IDE window (D4). -->
+        <applicationService
+            serviceImplementation="com.aicoach.jetbrains.sidecar.SidecarService"/>
+
+        <!-- Persisted Node path override (part 3 settings scope). -->
+        <applicationService
+            serviceImplementation="com.aicoach.jetbrains.settings.CoachSettings"/>
+        <applicationConfigurable
+            parentId="tools"
+            id="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"
+            displayName="AI Coach"
+            instance="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"/>
+    </extensions>
 </idea-plugin>

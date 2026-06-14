@@ -20,6 +20,7 @@ dependencies {
         intellijIdea(libs.versions.intellijIdea.get())
         testFramework(TestFrameworkType.Platform)
     }
+    testImplementation(libs.junit)
 }
 
 intellijPlatform {
@@ -45,4 +46,44 @@ intellijPlatform {
 
 kotlin {
     jvmToolchain(21)
+}
+
+// ---------------------------------------------------------------------------
+// Sidecar + webview bundles -> plugin JAR resources.
+//
+// The Node sidecar bundles (main.js + workers, rules/metrics assets) and the
+// browser webview bundle (app.js + styles.css) are produced by the sidecar's
+// esbuild config (`sidecar/npm run build`). They are NOT committed (dist/ is
+// gitignored); the JAR is the single source of truth at runtime:
+//   - `sidecar/*`  is extracted by SidecarService to runtime/<version>/ and run.
+//   - `webview/*`  is served to JCEF by AssetSchemeHandler (alongside the
+//                  committed index.html / bootstrap.js / test-harness.html).
+//
+// `buildSidecar` runs the bundler; `processResources` folds its output in. It
+// is wired into resource processing (jar/buildPlugin), not compileKotlin, so a
+// plain `compileKotlin` needs no Node toolchain.
+// ---------------------------------------------------------------------------
+val sidecarDir = rootProject.projectDir.resolve("sidecar")
+val sidecarDist = sidecarDir.resolve("dist")
+val npmExecutable = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) "npm.cmd" else "npm"
+
+val buildSidecar by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Builds the Node sidecar and webview bundles via esbuild."
+    workingDir = sidecarDir
+    commandLine(npmExecutable, "run", "build")
+}
+
+tasks.processResources {
+    dependsOn(buildSidecar)
+    // Node sidecar runtime: entry, workers, and the markdown rule/metric assets.
+    from(sidecarDist) {
+        into("sidecar")
+        include("main.js", "*-worker.js", "rules/**", "metrics/**")
+    }
+    // Browser webview bundle served by the custom scheme handler.
+    from(sidecarDist.resolve("webview")) {
+        into("webview")
+        include("app.js", "styles.css")
+    }
 }

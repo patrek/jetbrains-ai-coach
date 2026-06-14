@@ -97,10 +97,24 @@ export class SidecarHarness {
         if (cb) { this.pending.delete(msg.id as string); cb.resolve(msg.data); }
         break;
       }
-      case 'host-request':
-        this.hostRequests.push({ id: msg.id as string, method: msg.method as string, params: msg.params });
+      case 'host-request': {
+        const req: HostRequest = { id: msg.id as string, method: msg.method as string, params: msg.params };
+        this.hostRequests.push(req);
+        this.answerHost(req);
         break;
+      }
     }
+  }
+
+  /**
+   * Answer a sidecar host-request, mirroring the part-3 bridge's stubbed trust
+   * router so the startup `trust/get` seed resolves and the sidecar proceeds to
+   * load: `trust/get` -> empty snapshot, `trust/update` -> ack.
+   */
+  private answerHost(req: HostRequest): void {
+    if (this.exited) return;
+    const data = req.method === 'trust/get' ? {} : { ok: true };
+    this.child.stdin!.write(`${JSON.stringify({ type: 'host-response', id: req.id, data })}\n`);
   }
 
   /** Send a request and resolve with its `data` payload (rejects if the sidecar dies). */
