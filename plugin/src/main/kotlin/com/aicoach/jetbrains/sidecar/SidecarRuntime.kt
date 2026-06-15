@@ -1,6 +1,7 @@
 package com.aicoach.jetbrains.sidecar
 
 import com.intellij.openapi.diagnostic.logger
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -58,30 +59,36 @@ object SidecarRuntime {
     private fun isComplete(dir: Path): Boolean = REQUIRED.all { Files.isRegularFile(dir.resolve(it)) }
 
     /** Copy every classpath resource under `sidecar/` into [target], flattening the
-     *  `sidecar/` prefix so `main.js` lands at the runtime root. */
+     *  `sidecar/` prefix so `main.js` lands at the runtime root.
+     *
+     *  Locates the plugin artifact via a known resource URL rather than
+     *  `protectionDomain.codeSource`, which is null in the Gradle `runIde` dev
+     *  sandbox (IntelliJ's plugin classloader doesn't expose a code source). */
     private fun extractBundle(target: Path) {
-        val location = javaClass.protectionDomain.codeSource?.location
-            ?: error("Cannot locate the plugin code source to extract the sidecar bundle")
-        val source = Paths.get(location.toURI())
+        val markerUrl = SidecarRuntime::class.java.getResource("/sidecar/main.js")
+            ?: error("Cannot find /sidecar/main.js in classpath — run 'npm run build' in the sidecar/ directory first")
 
-        if (Files.isDirectory(source)) {
-            val sidecarDir = source.resolve("sidecar")
-            if (!Files.isDirectory(sidecarDir)) error("No /sidecar resources under $source")
+        if (markerUrl.protocol == "jar") {
+            // Production JAR: jar:file:/path/to/plugin.jar!/sidecar/main.js
+            val jarUri = URI(markerUrl.toExternalForm().substringAfter("jar:").substringBefore("!"))
+            val zipFile = ZipFile(Paths.get(jarUri).toFile())
+            zipFile.use { zip: ZipFile ->
+                zip.entries().asSequence()
+                    .filter { e -> !e.isDirectory && e.name.startsWith("sidecar/") }
+                    .forEach { e ->
+                        zip.getInputStream(e).use { input -> copyInto(target, e.name.removePrefix("sidecar/"), input) }
+                    }
+            }
+        } else if (markerUrl.protocol == "file") {
+            // Dev sandbox: file:/path/to/build/resources/main/sidecar/main.js
+            val sidecarDir = Paths.get(markerUrl.toURI()).parent
             Files.walk(sidecarDir).use { stream ->
                 stream.filter { Files.isRegularFile(it) }.forEach { file ->
                     copyInto(target, sidecarDir.relativize(file).toString(), Files.newInputStream(file))
                 }
             }
         } else {
-            ZipFile(source.toFile()).use { zip ->
-                zip.entries().asSequence()
-                    .filter { !it.isDirectory && it.name.startsWith("sidecar/") }
-                    .forEach { entry ->
-                        zip.getInputStream(entry).use { input ->
-                            copyInto(target, entry.name.removePrefix("sidecar/"), input)
-                        }
-                    }
-            }
+            error("Unexpected classpath protocol '${markerUrl.protocol}' for sidecar bundle")
         }
     }
 
