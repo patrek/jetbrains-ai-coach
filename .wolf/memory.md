@@ -143,3 +143,28 @@ Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated
 | 13:49 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandler.kt | inline fix | ~21 |
 | 13:49 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/theme/ThemeCssProviderTest.kt | expanded (+7 lines) | ~178 |
 | 13:50 | Created plugin/src/test/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandlerTest.kt | — | ~271 |
+| 13:54 | Session end: 21 writes across 11 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 17 reads | ~83907 tok |
+| 13:58 | Session end: 21 writes across 11 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 17 reads | ~83907 tok |
+| 14:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified addLoadHandler() | ~385 |
+| 14:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified handleFromWebview() | ~57 |
+| 14:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onConnected() | ~48 |
+| 14:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onConnectionError() | ~44 |
+| 14:20 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified forwardOrQueue() | ~125 |
+| 14:20 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onResponse() | ~51 |
+| 14:20 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onPush() | ~38 |
+| 14:21 | Session end: 28 writes across 12 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 19 reads | ~84951 tok |
+| 14:24 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | added error handling | ~150 |
+| 14:26 | Session end: 29 writes across 12 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 19 reads | ~85112 tok |
+| 14:28 | Edited plugin/src/main/resources/webview/bootstrap.js | modified function() | ~197 |
+| 14:28 | Session end: 30 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 19 reads | ~85309 tok |
+| 14:32 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/theme/WebviewThemeSync.kt | — | ~524 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified addLoadHandler() | ~184 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified handleFromWebview() | ~27 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified synchronized() | ~63 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onConnected() | ~26 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onConnectionError() | ~22 |
+| 14:33 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onResponse() | ~28 |
+| 14:34 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified onPush() | ~21 |
+| 14:34 | Edited plugin/src/main/resources/webview/bootstrap.js | removed 15 lines | ~24 |
+| 14:35 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 19 reads | ~86291 tok |
+| 14:35 | fix: theme-change reload hang (bug-030) — webview waits on one-shot dataReady; dropped soft reload, live-inject only | WebviewThemeSync.kt | verified in IDE: theme switch recolors live, no hang | ~12k |

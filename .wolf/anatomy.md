@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T17:50:08.424Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T18:34:11.316Z
 > Files: 318 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/p2gen/sidecar/vendor/core/
@@ -146,7 +146,7 @@
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/theme/
 
 - `ThemeCssProvider.kt` — Derives the 23 webview theme variables from the live IDE theme and serializes (~1554 tok)
-- `WebviewThemeSync.kt` — Keeps one open dashboard window's webview in sync with the live IDE theme. (~662 tok)
+- `WebviewThemeSync.kt` — Keeps one open dashboard window's webview in sync with the live IDE theme. (~524 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/
 
