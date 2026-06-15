@@ -1,11 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-12T22:34:03.672Z
-> Files: 305 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T14:47:37.780Z
+> Files: 307 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitignore` — Git ignore rules (~106 tok)
+- `AGENTS.md` — Agent instructions for Codex/Jules/OpenCode: build, test, architecture, conventions (~320 tok)
 - `build.gradle.kts` — Gradle Kotlin build configuration (~72 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `gradle.properties` (~105 tok)
@@ -28,6 +29,10 @@
 ## .code-review-graph/
 
 - `.gitignore` — Git ignore rules (~38 tok)
+
+## .github/
+
+- `copilot-instructions.md` — Copilot session instructions: build/test commands, architecture, conventions (~350 tok)
 
 ## .github/workflows/
 
@@ -121,7 +126,7 @@
 
 - `NodeDetector.kt` — Locates a usable Node.js (>= 20) for the sidecar. (~2848 tok)
 - `SidecarProcess.kt` — The production [SidecarTransport]: a single Node child process plus the NDJSON (~1165 tok)
-- `SidecarRuntime.kt` — On-disk layout and lifecycle for the extracted Node runtime. (~1479 tok)
+- `SidecarRuntime.kt` — On-disk layout and lifecycle for the extracted Node runtime. (~2060 tok)
 - `SidecarService.kt` — The one application-level sidecar shared by every IDE window (decision D4). (~1058 tok)
 - `SidecarSupervisor.kt` — The app-level sidecar's protocol policy, free of any IntelliJ or process (~2905 tok)
 
@@ -206,7 +211,7 @@
 - `antipatterns-e2e.test.ts` — End-to-end test for the Anti-Patterns pipeline. (~7189 tok)
 - `cache-write-worker.ts` — CacheWriteWorkerData: isCacheWriteWorkerData (~358 tok)
 - `cache.test.ts` — API routes: GET (1 endpoints) (~2367 tok)
-- `cache.ts` — Fast directory fingerprint. (~4296 tok)
+- `cache.ts` — Fast directory fingerprint. (~4297 tok)
 - `config-health-helpers.test.ts` — tempDirs: makeTempDir, writeFile (~3741 tok)
 - `config-health-helpers.ts` — Exports resolveWorkspaceRoot, isCloudPath, scanConfigFiles, scanPersonalSkillFiles (~5746 tok)
 - `constants.test.ts` — Declares today (~889 tok)
@@ -222,8 +227,8 @@
 - `metric-engine.test.ts` — Declares md (~4882 tok)
 - `metric-engine.ts` — Metric engine: parses .metric.md files, evaluates metrics via the DSL, (~5426 tok)
 - `parse-worker.ts` — LoadProgress: send, parseWorkerRequest, onMessage (~1220 tok)
-- `parser-claude.test.ts` — os.tmpdir() on Windows often returns 8.3 short names (e.g. TAMASB~1) (~6030 tok)
-- `parser-claude.ts` — Set from CLAUDE_CODE_ENTRYPOINT env var at launch time. Known values: (~7340 tok)
+- `parser-claude.test.ts` — os.tmpdir() on Windows often returns 8.3 short names (e.g. TAMASB~1) (~6618 tok)
+- `parser-claude.ts` — Present on `type: 'image'` blocks: the inline screenshot bytes. (~8003 tok)
 - `parser-codex-extra.test.ts` — CodexFixture: withCodexRoot, stringifyLines, writeCodexFixture + 4 more (~7142 tok)
 - `parser-codex.test.ts` — Declares withCodexFile (~3337 tok)
 - `parser-codex.ts` — Tool names (lowercase) that actually write/edit files. (~5297 tok)
@@ -355,11 +360,11 @@
 - `insights-types.ts` — Exports SessionIntent, SESSION_INTENTS, INTENT_COLORS, LearningVelocityData + 7 more (~1077 tok)
 - `rpc-types.ts` — Canonical error-payload shape returned by RPC handlers that surface a (~2849 tok)
 - `rule-types.ts` — Where a rule was loaded from, in order of precedence (lowest to highest): (~2049 tok)
-- `session-types.ts` — Authoritative per-model usage totals reported at the session level (~2312 tok)
+- `session-types.ts` — Authoritative per-model usage totals reported at the session level (~2418 tok)
 
 ## sidecar/vendor/webview/
 
-- `app.ts` — Navigation hint: which sub-section to auto-open after navigating (~8372 tok)
+- `app.ts` — Navigation hint: which sub-section to auto-open after navigating (~8447 tok)
 - `dsl-cheatsheet.test.ts` (~330 tok)
 - `dsl-cheatsheet.ts` — Shared DSL cheat-sheet text used in system prompts for rule generation (~1312 tok)
 - `fetch-utils.test.ts` — Declares response (~348 tok)
@@ -399,7 +404,7 @@
 - `panel-llm.ts` — Repair JSON that was cut off mid-stream (e.g. when the model hit its output (~4327 tok)
 - `panel-request-service.ts` — Exports PanelRequestService (~18382 tok)
 - `panel-rpc.test.ts` (~330 tok)
-- `panel-rpc.ts` — Pick `reqs` or `sessions` based on scope and return them typed as (~14651 tok)
+- `panel-rpc.ts` — Pick `reqs` or `sessions` based on scope and return them typed as (~14872 tok)
 - `panel-shared.test.ts` — Declares base (~1236 tok)
 - `panel-shared.ts` — Build a typed error payload. Use this instead of `{ error: 'msg' }` literals (~1202 tok)
 - `panel-sidebar.ts` — Exports DashboardSidebarProvider (~893 tok)

@@ -1,116 +1,262 @@
 {
-  "session_id": "session-2026-06-12-1720",
-  "started": "2026-06-12T21:20:18.036Z",
+  "session_id": "session-2026-06-15-0945",
+  "started": "2026-06-15T13:45:28.723Z",
   "files_read": {
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/bfu4zi4y8.output": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt": {
+      "count": 1,
+      "tokens": 2683,
+      "first_read": "2026-06-15T13:46:14.249Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/app.ts": {
+      "count": 5,
+      "tokens": 8372,
+      "first_read": "2026-06-15T13:46:37.645Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/shared.ts": {
+      "count": 1,
+      "tokens": 4799,
+      "first_read": "2026-06-15T13:46:46.418Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/src/rpc-server.ts": {
+      "count": 1,
+      "tokens": 2636,
+      "first_read": "2026-06-15T13:47:35.342Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/src/main.ts": {
+      "count": 1,
+      "tokens": 694,
+      "first_read": "2026-06-15T13:48:57.085Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarProcess.kt": {
+      "count": 1,
+      "tokens": 1165,
+      "first_read": "2026-06-15T13:51:38.431Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt": {
+      "count": 1,
+      "tokens": 2905,
+      "first_read": "2026-06-15T13:52:03.385Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/resources/webview/bootstrap.js": {
+      "count": 1,
+      "tokens": 622,
+      "first_read": "2026-06-15T13:52:58.065Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/page-image-gallery.ts": {
+      "count": 1,
+      "tokens": 5835,
+      "first_read": "2026-06-15T14:11:30.137Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/panel-rpc.ts": {
+      "count": 1,
+      "tokens": 14651,
+      "first_read": "2026-06-15T14:12:04.169Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-vscode-files.ts": {
       "count": 2,
-      "tokens": 0,
-      "first_read": "2026-06-12T21:33:55.003Z"
+      "tokens": 4303,
+      "first_read": "2026-06-15T14:12:24.344Z"
     },
-    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-shared.ts": {
       "count": 2,
-      "tokens": 2843,
-      "first_read": "2026-06-12T21:34:29.017Z"
+      "tokens": 3827,
+      "first_read": "2026-06-15T14:12:40.627Z"
     },
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/bh9yiutun.output": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/resources/webview/index.html": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-06-12T21:35:14.092Z"
+      "tokens": 1593,
+      "first_read": "2026-06-15T14:13:45.399Z"
     },
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/ba4ked8qp.output": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/analyzer-images.ts": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-06-12T22:28:10.043Z"
+      "tokens": 3234,
+      "first_read": "2026-06-15T14:14:31.549Z"
     },
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/bb38u6ruc.output": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.ts": {
+      "count": 5,
+      "tokens": 7944,
+      "first_read": "2026-06-15T14:16:55.658Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/cache.ts": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-06-12T22:33:33.287Z"
+      "tokens": 4296,
+      "first_read": "2026-06-15T14:18:12.374Z"
     },
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/bjy7k8iqj.output": {
-      "count": 2,
-      "tokens": 0,
-      "first_read": "2026-06-12T22:34:22.382Z"
-    },
-    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/b5kcxlr1k.output": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-vscode-files.test.ts": {
       "count": 1,
-      "tokens": 0,
-      "first_read": "2026-06-12T22:34:27.760Z"
+      "tokens": 3323,
+      "first_read": "2026-06-15T14:20:06.437Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.test.ts": {
+      "count": 1,
+      "tokens": 6030,
+      "first_read": "2026-06-15T14:21:11.284Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-vscode.ts": {
+      "count": 1,
+      "tokens": 10546,
+      "first_read": "2026-06-15T14:24:25.583Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-harnesses.ts": {
+      "count": 1,
+      "tokens": 1562,
+      "first_read": "2026-06-15T14:26:25.442Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/types/session-types.ts": {
+      "count": 1,
+      "tokens": 2312,
+      "first_read": "2026-06-15T14:27:19.445Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/src/cache-paths.ts": {
+      "count": 1,
+      "tokens": 580,
+      "first_read": "2026-06-15T14:30:23.718Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt": {
+      "count": 1,
+      "tokens": 1479,
+      "first_read": "2026-06-15T14:35:35.184Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/ADR/0003-vendoring.md": {
+      "count": 1,
+      "tokens": 447,
+      "first_read": "2026-06-15T14:54:59.027Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/tools/sync-upstream.mjs": {
+      "count": 1,
+      "tokens": 1732,
+      "first_read": "2026-06-15T14:55:11.480Z"
     }
   },
   "files_written": [
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
       "action": "edit",
-      "tokens": 44,
-      "at": "2026-06-12T21:34:41.362Z"
+      "tokens": 246,
+      "at": "2026-06-15T13:55:11.379Z"
     },
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
       "action": "edit",
-      "tokens": 60,
-      "at": "2026-06-12T21:34:48.083Z"
+      "tokens": 89,
+      "at": "2026-06-15T13:55:13.572Z"
     },
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "action": "edit",
+      "tokens": 72,
+      "at": "2026-06-15T13:55:21.863Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/app.ts",
+      "action": "edit",
+      "tokens": 156,
+      "at": "2026-06-15T14:05:40.353Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "action": "edit",
+      "tokens": 47,
+      "at": "2026-06-15T14:09:49.405Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
       "action": "edit",
       "tokens": 21,
-      "at": "2026-06-12T21:36:00.504Z"
+      "at": "2026-06-15T14:09:51.270Z"
     },
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
-      "action": "edit",
-      "tokens": 25,
-      "at": "2026-06-12T21:36:27.265Z"
-    },
-    {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-06-12T21:36:35.787Z"
-    },
-    {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-06-12T21:36:46.619Z"
-    },
-    {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-06-12T21:36:59.655Z"
-    },
-    {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandler.kt",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
       "action": "edit",
       "tokens": 40,
-      "at": "2026-06-12T22:28:26.504Z"
+      "at": "2026-06-15T14:09:53.482Z"
     },
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/gradle/libs.versions.toml",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.test.ts",
       "action": "edit",
-      "tokens": 206,
-      "at": "2026-06-12T22:33:56.007Z"
+      "tokens": 36,
+      "at": "2026-06-15T14:21:19.677Z"
     },
     {
-      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/build.gradle.kts",
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.test.ts",
       "action": "edit",
-      "tokens": 99,
-      "at": "2026-06-12T22:34:03.688Z"
+      "tokens": 617,
+      "at": "2026-06-15T14:21:36.461Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.ts",
+      "action": "edit",
+      "tokens": 74,
+      "at": "2026-06-15T14:21:58.296Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.ts",
+      "action": "edit",
+      "tokens": 609,
+      "at": "2026-06-15T14:22:18.143Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/panel-rpc.ts",
+      "action": "edit",
+      "tokens": 38,
+      "at": "2026-06-15T14:22:25.943Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/panel-rpc.ts",
+      "action": "edit",
+      "tokens": 128,
+      "at": "2026-06-15T14:22:33.506Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/types/session-types.ts",
+      "action": "edit",
+      "tokens": 158,
+      "at": "2026-06-15T14:29:34.688Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/parser-claude.ts",
+      "action": "edit",
+      "tokens": 184,
+      "at": "2026-06-15T14:29:44.441Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/webview/panel-rpc.ts",
+      "action": "edit",
+      "tokens": 251,
+      "at": "2026-06-15T14:29:56.172Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/vendor/core/cache.ts",
+      "action": "edit",
+      "tokens": 8,
+      "at": "2026-06-15T14:30:37.206Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "action": "edit",
+      "tokens": 678,
+      "at": "2026-06-15T14:46:40.177Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "action": "edit",
+      "tokens": 94,
+      "at": "2026-06-15T14:47:37.806Z"
     }
   ],
   "edit_counts": {
-    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt": 4,
-    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt": 1,
-    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt": 2,
-    "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandler.kt": 1,
-    "gradle/libs.versions.toml": 1,
-    "plugin/build.gradle.kts": 1
+    "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt": 6,
+    "sidecar/vendor/webview/app.ts": 1,
+    "sidecar/vendor/core/parser-claude.test.ts": 2,
+    "sidecar/vendor/core/parser-claude.ts": 3,
+    "sidecar/vendor/webview/panel-rpc.ts": 3,
+    "sidecar/vendor/core/types/session-types.ts": 1,
+    "sidecar/vendor/core/cache.ts": 1,
+    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt": 2
   },
-  "anatomy_hits": 1,
-  "anatomy_misses": 6,
-  "repeated_reads_warned": 3,
+  "anatomy_hits": 25,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 10,
   "cerebrum_warnings": 0,
-  "stop_count": 0
+  "stop_count": 5
 }
