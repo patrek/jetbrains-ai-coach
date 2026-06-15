@@ -21,6 +21,28 @@
   /* Anti-flash: paint in the IDE theme immediately. bootstrap.js sets these two
      variables from the live theme at request time; this is the static fallback. */
   html, body { margin: 0; height: 100%; background-color: var(--vscode-editor-background, #1e1e1e); color: var(--vscode-editor-foreground, #d4d4d4); }
+
+  /* First-paint loading state. Shown the instant the webview paints — before
+     app.js is even parsed and before the sidecar's first progress arrives —
+     so the panel is never a blank rectangle during startup. app.js replaces
+     #content (via the loading screen, then the dashboard), removing this. */
+  #initial-loading {
+    position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+    color: var(--vscode-descriptionForeground, #8b949e);
+    background-color: var(--vscode-editor-background, #1e1e1e);
+  }
+  #initial-loading .il-spinner {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid color-mix(in srgb, currentColor 22%, transparent);
+    border-top-color: var(--vscode-progressBar-background, #3794ff);
+    animation: il-spin 0.9s linear infinite;
+  }
+  #initial-loading .il-kicker {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85;
+  }
+  @keyframes il-spin { to { transform: rotate(360deg); } }
 </style>
 <!-- Defines window.acquireVsCodeApi before app.js loads (the harness trick). -->
 <script src="bootstrap.js"></script>
@@ -61,7 +83,12 @@
       </div>
     </div>
   </nav>
-  <main id="content"></main>
+  <main id="content">
+    <div id="initial-loading">
+      <div class="il-spinner"></div>
+      <div class="il-kicker">Building Activity Index</div>
+    </div>
+  </main>
 </div>
 <script src="app.js"></script>
 </body>
