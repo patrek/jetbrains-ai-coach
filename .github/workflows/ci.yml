@@ -32,8 +32,22 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      # buildPlugin bundles the sidecar (esbuild over src/ + vendor/), so the
+      # vendored tree and sidecar devDependencies must be present first.
+      - name: Sync upstream (populate sidecar/vendor)
+        run: node tools/sync-upstream.mjs --skip-tests
+
+      - name: Install sidecar dependencies
+        working-directory: sidecar
+        run: npm ci
 
       - name: Build plugin
         run: ./gradlew :plugin:buildPlugin
