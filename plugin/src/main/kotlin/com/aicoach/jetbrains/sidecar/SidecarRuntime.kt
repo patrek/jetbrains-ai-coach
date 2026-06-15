@@ -29,6 +29,9 @@ object SidecarRuntime {
     /** Files that must be present for an extraction to count as complete. */
     private val REQUIRED = listOf("main.js", "parse-worker.js", "warm-up-worker.js", "cache-write-worker.js")
 
+    /** Stores the SHA-256 of the bundled main.js the extraction was made from. */
+    private const val FINGERPRINT_FILE = ".bundle-hash"
+
     val baseDir: Path = Paths.get(System.getProperty("user.home"), ".ai-coach-jetbrains")
     val logFile: Path = baseDir.resolve("logs/sidecar.log")
     private val runtimeBase: Path = baseDir.resolve("runtime")
@@ -38,21 +41,25 @@ object SidecarRuntime {
 
     /**
      * Ensure the bundle for [pluginVersion] is extracted and return its
-     * `main.js`. A complete prior extraction is reused; an incomplete one is
-     * re-extracted. The bundle lives under `/sidecar/` in the plugin classpath
-     * (a JAR in production, a directory in a dev sandbox).
+     * `main.js`. The extraction is reused only when it is complete **and** its
+     * stored fingerprint matches the bundled `main.js`; otherwise it is
+     * re-extracted.
+     *
+     * The fingerprint (not the version-stamped dir name) is the freshness key:
+     * the dir name never changes in the Gradle dev sandbox between builds, and
+     * the IntelliJ sandbox packages the plugin as a JAR (so a file://-vs-jar://
+     * heuristic does not detect dev). Hashing the bundled `main.js` correctly
+     * re-extracts on every rebuilt bundle (dev) and every plugin update (prod),
+     * while reusing an unchanged one.
      */
     fun ensureExtracted(pluginVersion: String): Path {
         val target = versionDir(pluginVersion)
         val mainJs = target.resolve("main.js")
-        // In the Gradle runIde dev sandbox, the bundle is on a file:// classpath
-        // resource and changes every build. The plugin version string never changes
-        // between dev runs, so the version-stamp cache would reuse the first
-        // extraction indefinitely. Skip the completion check so each runIde picks
-        // up the freshly-built bundle. JAR-based (production) deployments are
-        // unaffected: they use the jar:// protocol and still benefit from the cache.
-        val inDevSandbox = SidecarRuntime::class.java.getResource("/sidecar/main.js")?.protocol == "file"
-        if (!inDevSandbox && isComplete(target)) return mainJs
+        val stamp = target.resolve(FINGERPRINT_FILE)
+        val fingerprint = bundleFingerprint()
+        val upToDate = isComplete(target) &&
+            runCatching { Files.readString(stamp).trim() == fingerprint }.getOrDefault(false)
+        if (upToDate) return mainJs
 
         Files.createDirectories(target)
         Files.createDirectories(logFile.parent)
@@ -60,10 +67,28 @@ object SidecarRuntime {
         if (!isComplete(target)) {
             error("Sidecar bundle extraction incomplete in $target (missing one of $REQUIRED)")
         }
+        runCatching { Files.writeString(stamp, fingerprint) }
+            .onFailure { log.warn("Could not write bundle fingerprint", it) }
         return mainJs
     }
 
     private fun isComplete(dir: Path): Boolean = REQUIRED.all { Files.isRegularFile(dir.resolve(it)) }
+
+    /** SHA-256 of the bundled `main.js` from the plugin classpath. */
+    private fun bundleFingerprint(): String {
+        val url = SidecarRuntime::class.java.getResource("/sidecar/main.js")
+            ?: error("Cannot find /sidecar/main.js in classpath — run 'npm run build' in the sidecar/ directory first")
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        url.openStream().use { input ->
+            val buf = ByteArray(8192)
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                digest.update(buf, 0, n)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     /** Copy every classpath resource under `sidecar/` into [target], flattening the
      *  `sidecar/` prefix so `main.js` lands at the runtime root.
