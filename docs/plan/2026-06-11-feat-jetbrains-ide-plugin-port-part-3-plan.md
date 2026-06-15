@@ -82,3 +82,94 @@ Warm start to interactive dashboard ≤ 5s against the part-2 fixture dataset.
 - CSP reference: `src/webview/panel-html.ts:10-66`
 - JCEF docs: https://plugins.jetbrains.com/docs/intellij/embedded-browser-jcef.html
 - Threading: https://plugins.jetbrains.com/docs/intellij/threading-model.html
+
+---
+
+## Implementation Status (as of 2026-06-15)
+
+**Branch:** `feat/jetbrains-part-3-kotlin-shell`
+**PR:** https://github.com/patrek/jetbrains-ai-coach/pull/4
+
+### What is done
+
+All code was written and committed before debugging began. The plugin builds, loads in the Gradle `runIde` sandbox, JCEF opens, Node is detected, the sidecar starts, finds 147 sessions, and emits `dataReady`. All Kotlin tests pass (NodeDetectorTest ×8, SidecarSupervisorTest ×11). All 1154 sidecar tests pass.
+
+The loading screen renders correctly — it steps through all 6 phases (Discovering → Checking cache → Parsing → Scanning → Preparing analytics → Ready) and reaches 100%. The sidebar icons are visible on the right edge (correct structure).
+
+**The one remaining blocker: the dashboard does not render after Ready.**
+
+After `dataReady` is received the loading screen stays on-screen permanently. `onDataReady()` should call `setShellLoadingMode(false)` + `navigateTo('dashboard')` → `renderPage('dashboard')` → `withErrorBoundary(…renderDashboard)`. This transition never happens.
+
+### Bugs fixed during this session
+
+| Commit | Fix |
+|--------|-----|
+| Initial commits | All 51 part-3 files committed; Kotlin + sidecar tests green |
+| `extractBundle` fix | `protectionDomain.codeSource` is null in Gradle dev sandbox; switched to `getResource("/sidecar/main.js")` URL-based location (handles `jar://` prod and `file://` dev) |
+| Trusted Types spike | `require-trusted-types-for 'script'` + `trusted-types coach-html default` removed from CSP in `index.html` and `test-harness.html` — JCEF's bundled Chromium silently blocks `innerHTML` under those directives |
+| `57620dc` | Race condition: `dataReady` was sent before `warmUp` completed; warmUp's subsequent `progress` messages re-triggered `ensureLoadingUI()` which overwrote the dashboard. Fixed: `dataReady` now sent after `warmUp`. |
+| `3be5121` | Stale bundle cache: `SidecarRuntime.ensureExtracted` reused the first-ever extracted `~/.ai-coach-jetbrains/runtime/0.1.0/` on every `runIde` because the version string never changes in dev. Fixed: when classpath is `file://` (dev sandbox), skip the `isComplete` short-circuit and always re-extract. Production (`jar://`) still uses the version-stamp cache. |
+
+### Active investigation
+
+Despite the two fixes above, the dashboard still does not render. Both fixes are confirmed present in `sidecar/dist/main.js` (verified via `loadData()` body in the bundle). The re-extraction fix means the bundle is now correct on each run.
+
+**Most likely remaining hypotheses (in priority order):**
+
+1. **`renderDashboard` throws inside `withErrorBoundary`** — `withErrorBoundary` catches the error and renders an error fallback in `#content`, but the `loading-mode` CSS class is still on `#app` (hiding the sidebar and filling the full width with the loading screen). So the error panel would be rendered but visually buried under or behind the loading overlay. The `setShellLoadingMode(false)` call in `onDataReady` would remove `loading-mode` *before* `navigateTo` is called — but if `#app` is somehow null (wrong `getElementById`), the class removal silently fails and the loading screen stays. Verify: add a `console.log` in `onDataReady` and inspect via JCEF DevTools (right-click → Inspect / open from IDE).
+
+2. **`dataReady` message is not being received by the webview** — `deliver()` in `WebviewBridge.kt` uses `gson.toJson(message.toString())` which double-encodes: `gson.toJson` takes a string and returns a JSON string literal (with surrounding quotes and escape sequences). The resulting JS is: `window.dispatchEvent(new MessageEvent('message',{data:JSON.parse("\"{ ... }\"")}))` — `JSON.parse` of a JSON string literal returns a `string`, not an object. `ev.data` would then be a string, `msg.type` would be `undefined`, and `msg.type === 'dataReady'` would be `false`. **However**, `progress` messages go through the same `deliver()` path and they clearly DO work (the loading screen updates correctly). So either (a) the double-encoding is fine and `JSON.parse` of a string works here, or (b) there is something different about how `progress` vs `dataReady` is dispatched. Needs a concrete test.
+
+3. **`onDataReady` fires but `renderDashboard` is an async function that throws before its first `await`** — `withErrorBoundary` wraps the sync throw but the async rejection path also calls `showErrorFallback`. If the error fallback renders correctly but is invisible because `loading-mode` is still active (see hypothesis 1), this would look identical.
+
+### How to diagnose next
+
+**Option A — JCEF DevTools console:**
+After `runIde` loads the dashboard, right-click in the tool window and look for "Inspect" / "Developer Tools". If that's not available, add a temporary JS injection in `WebviewBridge.onConnected`:
+```kotlin
+browser.cefBrowser.executeJavaScript("""
+  window.addEventListener('message', function(e) {
+    console.log('[msg]', typeof e.data, JSON.stringify(e.data).slice(0, 200));
+  });
+""", "", 0)
+```
+This will show whether `dataReady` arrives and what shape `ev.data` has.
+
+**Option B — Visual DOM probe:**
+Add a temporary visible indicator in `onDataReady` in `app.ts`:
+```typescript
+function onDataReady(currentWorkspace: string): void {
+  document.title = 'DATA READY';  // visible in IDE tab title
+  // ... rest of function
+```
+If the title changes, `onDataReady` fired. If it doesn't, the message isn't reaching the handler.
+
+**Option C — Fix the `deliver()` encoding directly:**
+The `gson.toJson(message.toString())` double-encoding is suspicious regardless. A cleaner fix:
+```kotlin
+private fun deliver(message: JsonObject) {
+    val js = "window.dispatchEvent(new MessageEvent('message',{data:${message}}));"
+    runCatching { browser.cefBrowser.executeJavaScript(js, browser.cefBrowser.url, 0) }
+        .onFailure { log.debug("deliver failed (browser disposed?)", it) }
+}
+```
+`message.toString()` on a Gson `JsonObject` returns valid JSON, so it can be embedded directly as a JS object literal — no `JSON.parse` needed. This eliminates any double-encoding risk and is the cleanest path. Try this first.
+
+### Relevant file locations
+
+| File | Notes |
+|------|-------|
+| `plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt` | `deliver()` at line 178 — suspect encoding; `onPush` at line 163 |
+| `plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt` | `ensureExtracted` — dev sandbox re-extraction fix at line 48 |
+| `sidecar/src/rpc-server.ts` | `loadData()` — `dataReady` after `warmUp` fix at line 207 |
+| `sidecar/vendor/webview/app.ts` | `onDataReady` at line 420; `setShellLoadingMode` at line 95; `renderPage` at line 621 |
+| `sidecar/vendor/webview/shared.ts` | `initMessageListener` at line 53; `withErrorBoundary` at line 419; `setHtml`/`innerHTML` at line 164 |
+| `plugin/src/main/resources/webview/index.html` | CSP — Trusted Types directives removed |
+| `plugin/src/main/resources/webview/bootstrap.js` | `acquireVsCodeApi` shim; `postToHost` queue |
+
+### Next session starting point
+
+1. Try **Option C first** (fix `deliver()` encoding in `WebviewBridge.kt`) — it's a 2-line change and eliminates the most structural suspect.
+2. If that doesn't work, add the console-log probe (Option A) to get ground truth on what `ev.data` looks like.
+3. Once the dashboard renders, verify all acceptance criteria from this plan.
+4. Merge PR #4 and begin Part 4 (theme integration).
