@@ -38,6 +38,9 @@ jobs:
       - name: Build plugin
         run: ./gradlew :plugin:buildPlugin
 
+      - name: Run plugin tests (sidecar supervisor + node detector lifecycle)
+        run: ./gradlew :plugin:test
+
       - name: Verify plugin
         run: ./gradlew :plugin:verifyPlugin
 
