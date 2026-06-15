@@ -37,5 +37,10 @@
             id="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"
             displayName="AI Coach"
             instance="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"/>
+
+        <!-- Balloon notifying the user that local rules are pending trust review. -->
+        <notificationGroup
+            id="AI Coach Trust"
+            displayType="BALLOON"/>
     </extensions>
 </idea-plugin>

@@ -3,7 +3,7 @@
  *
  * Speaks the upstream webview envelope over NDJSON (one JSON object per line):
  *
- *   in   { type:'request', id, method, params?, projectRoot? }
+ *   in   { type:'request', id, method, params?, projectRoot?, safeMode? }
  *        { type:'host-response', id, data }                 // reply to a host-request
  *   out  { type:'hello', version, capabilities }            // handshake, sent first
  *        { type:'progress', phase, detail, pct, ... }       // pushed during parse
@@ -28,6 +28,7 @@ import type { ParseResult, LoadProgress } from '../vendor/core/parser';
 import { errorResult, isString, isRecord } from '../vendor/webview/panel-shared';
 import { createHostTrustMemento, installTrustMemento, loadTrustSeed, type HostChannel } from './host-shims';
 import { resolveHandler } from './rpc-handlers';
+import { ruleScope } from './rule-scope';
 
 /** Protocol version reported in the `hello` handshake. */
 export const SIDECAR_PROTOCOL_VERSION = '1.0.0';
@@ -62,6 +63,7 @@ type IncomingRequest = {
   method: string;
   params: Record<string, unknown>;
   projectRoot?: string;
+  safeMode?: boolean;
 };
 
 export class RpcServer {
@@ -101,6 +103,11 @@ export class RpcServer {
     const channel: HostChannel = { request: (method, params) => this.hostRequest(method, params) };
     const seed = await loadTrustSeed(channel);
     installTrustMemento(createHostTrustMemento({ channel, seed }));
+
+    // Install the trust gate and perform the first GATED rule/metric reload,
+    // replacing the ungated personal-rules load that ran at detector-registry
+    // module load. No request is served before this (loadData gates dataReady).
+    ruleScope.install();
 
     await this.loadData();
   }
@@ -154,6 +161,7 @@ export class RpcServer {
       method: msg.method,
       params: isRecord(msg.params) ? msg.params : {},
       projectRoot: isString(msg.projectRoot) ? msg.projectRoot : undefined,
+      safeMode: typeof msg.safeMode === 'boolean' ? msg.safeMode : undefined,
     };
 
     if (!this.dataReady) {
@@ -174,12 +182,15 @@ export class RpcServer {
       return;
     }
     try {
-      const data = await handler({
-        analyzer: this.analyzer,
-        parseResult: this.parseResult,
-        params: request.params,
-        projectRoot: request.projectRoot,
-      });
+      const data = await ruleScope.run(request.projectRoot, request.safeMode ?? false, () =>
+        handler({
+          analyzer: this.analyzer!,
+          parseResult: this.parseResult!,
+          params: request.params,
+          projectRoot: request.projectRoot,
+          safeMode: request.safeMode,
+        }),
+      );
       this.send({ type: 'response', id: request.id, data });
     } catch (err) {
       this.send({ type: 'response', id: request.id, data: errorResult(err instanceof Error ? err.message : String(err)) });

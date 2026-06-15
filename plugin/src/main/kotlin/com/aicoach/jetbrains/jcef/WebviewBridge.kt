@@ -2,6 +2,7 @@ package com.aicoach.jetbrains.jcef
 
 import com.aicoach.jetbrains.sidecar.SidecarService
 import com.aicoach.jetbrains.sidecar.SidecarSupervisor
+import com.aicoach.jetbrains.trust.TrustGateController
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -53,6 +54,7 @@ class WebviewBridge(
     private val gson = Gson()
     private val query = JBCefJSQuery.create(browser as com.intellij.ui.jcef.JBCefBrowserBase)
     private val projectRoot: String? = project.basePath ?: project.guessProjectDir()?.path
+    private val trust = TrustGateController(project, service, projectRoot)
 
     @Volatile private var connected = false
     @Volatile private var capabilities: JsonObject = JsonObject()
@@ -78,6 +80,7 @@ class WebviewBridge(
         }, browser.cefBrowser)
 
         service.register(this)
+        trust.start()
         connectTimeout = AppExecutorUtil.getAppScheduledExecutorService().schedule(
             { if (!connected) onConnectionError("Could not connect to the AI Coach sidecar within ${CONNECT_TIMEOUT_MS / 1000}s.") },
             CONNECT_TIMEOUT_MS,
@@ -114,8 +117,12 @@ class WebviewBridge(
             }
             "loadModelBudgets" -> reply(id, parseStored(appProperties().getValue(BUDGETS_KEY)))
             "getCapabilities" -> reply(id, capabilitiesReply())
-            // Trust-approval UI lands in part 5; stub so the webview doesn't hang.
-            "reviewLocalRules" -> reply(id, JsonObject().apply { addProperty("ok", false) })
+            // Host-owned trust review: open the IDE dialog, never forward to the
+            // sidecar (the bridge intercepts it — ADR 0009 Host row).
+            "reviewLocalRules" -> {
+                trust.review()
+                reply(id, ok())
+            }
             // Export lands in part 6; reserve it so an early call doesn't reach
             // the sidecar's Unknown-method path.
             "exportSummary" -> reply(id, JsonObject().apply { addProperty("error", "export-unavailable") })
@@ -130,7 +137,7 @@ class WebviewBridge(
                 return
             }
         }
-        service.forward(this, pending.id, pending.method, pending.params, projectRoot)
+        service.forward(this, pending.id, pending.method, pending.params, projectRoot, trust.safeMode())
     }
 
     private fun persistState(state: JsonElement?) {
@@ -144,7 +151,9 @@ class WebviewBridge(
         connected = true
         connectTimeout?.cancel(false)
         val drained = synchronized(outbound) { ArrayDeque(outbound).also { outbound.clear() } }
-        for (pending in drained) service.forward(this, pending.id, pending.method, pending.params, projectRoot)
+        for (pending in drained) service.forward(this, pending.id, pending.method, pending.params, projectRoot, trust.safeMode())
+        // Surface any already-pending local rules now that the sidecar is up.
+        trust.onConnected()
     }
 
     override fun onConnectionError(message: String) {
@@ -215,6 +224,7 @@ class WebviewBridge(
 
     override fun dispose() {
         connectTimeout?.cancel(false)
+        trust.dispose()
         service.unregister(this)
         com.intellij.openapi.util.Disposer.dispose(query)
     }
