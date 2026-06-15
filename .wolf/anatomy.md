@@ -1,7 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:30:53.755Z
-> Files: 307 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T16:01:51.692Z
+> Files: 309 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../../tmp/p2gen/sidecar/vendor/core/
+
+- `parser-main.test.ts` — API routes: GET (2 endpoints) (~4201 tok)
+- `parser.ts` — Running total of AI-generated lines of code discovered so far. (~8321 tok)
 
 ## ./
 

@@ -111,3 +111,6 @@ Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated
 | 11:29 | Session end: 1 writes across 1 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md) | 1 reads | ~3795 tok |
 | 11:30 | Edited .github/workflows/ci.yml | expanded (+14 lines) | ~215 |
 | 11:35 | Session end: 2 writes across 2 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md, ci.yml) | 3 reads | ~4688 tok |
+| 11:40 | Session end: 2 writes across 2 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md, ci.yml) | 3 reads | ~4688 tok |
+| 11:59 | Edited ../../../../../tmp/p2gen/sidecar/vendor/core/parser.ts | modified findLogsDirs() | ~157 |
+| 12:01 | Edited ../../../../../tmp/p2gen/sidecar/vendor/core/parser-main.test.ts | 6→10 lines | ~190 |

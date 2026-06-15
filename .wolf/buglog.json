@@ -358,6 +358,59 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-06-15T11:30:00.000Z"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-06-15T15:59:52.700Z",
+      "error_message": "Wrong return value",
+      "file": "../../../../../tmp/p2gen/sidecar/vendor/core/parser.ts",
+      "root_cause": "Was returning: [...findVsCodeDirs(), ...findXcodeDirs()];",
+      "fix": "Now returns: findVsCodeDirs().filter(d => d.includes('.copilot'",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T15:59:52.700Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-06-15T16:01:51.711Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../../tmp/p2gen/sidecar/vendor/core/parser-main.test.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6\u219210 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T16:01:51.711Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-06-15T12:10:00.000Z",
+      "error_message": "Harness filter does not show GitHub Copilot CLI despite ~/.copilot/session-state having sessions on this device",
+      "file": "tools/patches/0002-findlogsdirs-drop-vscode-xcode.patch",
+      "root_cause": "GitHub Copilot CLI dirs (~/.copilot/session-state, history-session-state) are discovered inside findVsCodeDirs() and parsed via the VS Code CLI-events path (harness 'GitHub Copilot CLI'). Patch 0002 dropped ALL of findLogsDirs() to [], removing the Copilot CLI dirs too \u2014 even though D8 / the patch comment say Copilot CLI is a collected harness. collectExternalHarnesses only covers Claude/Codex/OpenCode, so Copilot CLI fell through the cracks and never parsed.",
+      "fix": "Regenerated patch 0002 so findLogsDirs() returns findVsCodeDirs().filter(d => d.includes('.copilot')) \u2014 keeps Copilot CLI, still drops VS Code workspaceStorage + Xcode (D8). Updated the parser-main.test.ts assertion accordingly. Verified: getHarnesses now returns ['Claude','GitHub Copilot CLI','OpenCode']; 1158 vendored tests green. VS Code Copilot Chat (workspaceStorage) remains intentionally deferred per D8.",
+      "tags": [
+        "copilot",
+        "harness",
+        "findLogsDirs",
+        "patch-0002",
+        "cli-events",
+        "D8"
+      ],
+      "related_bugs": [
+        "bug-018"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T12:10:00.000Z"
     }
   ]
 }

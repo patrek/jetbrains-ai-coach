@@ -1,39 +1,42 @@
+diff --git a/sidecar/vendor/core/parser-main.test.ts b/sidecar/vendor/core/parser-main.test.ts
+index f0320f3..e3aaaeb 100644
+--- a/sidecar/vendor/core/parser-main.test.ts
++++ b/sidecar/vendor/core/parser-main.test.ts
+@@ -138,11 +138,15 @@ describe('LOAD_PHASES', () => {
+ });
+ 
+ describe('findLogsDirs', () => {
+-  it('combines VS Code and Xcode directories', () => {
+-    vi.mocked(findVsCodeDirs).mockReturnValue(['/logs/vscode-a', '/logs/vscode-b']);
++  it('keeps only Copilot CLI dirs, dropping VS Code workspaceStorage and Xcode (fork divergence D8)', () => {
++    // The JetBrains port collects CLI harnesses only. Claude Code, Codex, and
++    // OpenCode come via collectExternalHarnesses; Copilot CLI (~/.copilot) is the
++    // one harness discovered through findLogsDirs (it shares the VS Code CLI parse
++    // path). VS Code workspaceStorage and Xcode are dropped in v1.
++    vi.mocked(findVsCodeDirs).mockReturnValue(['/logs/vscode-ws', '/home/u/.copilot/session-state']);
+     vi.mocked(findXcodeDirs).mockReturnValue([XCODE_DIR]);
+ 
+-    expect(findLogsDirs()).toEqual(['/logs/vscode-a', '/logs/vscode-b', XCODE_DIR]);
++    expect(findLogsDirs()).toEqual(['/home/u/.copilot/session-state']);
+   });
+ });
+ 
 diff --git a/sidecar/vendor/core/parser.ts b/sidecar/vendor/core/parser.ts
-index fd5cbab..f2ffc9a 100644
+index fd5cbab..8d8b507 100644
 --- a/sidecar/vendor/core/parser.ts
 +++ b/sidecar/vendor/core/parser.ts
-@@ -99,7 +99,12 @@ function pct(phase: number, intraPhase: number): number {
+@@ -99,7 +99,13 @@ function pct(phase: number, intraPhase: number): number {
  }
  
  export function findLogsDirs(): string[] {
 -  return [...findVsCodeDirs(), ...findXcodeDirs()];
 +  // Fork divergence (decision D8): the JetBrains port ships v1 with CLI-harness
-+  // collectors only (Claude Code, Codex, OpenCode, Copilot CLI), which are
-+  // gathered by `collectExternalHarnesses` independently of this list. VS Code
-+  // workspaceStorage and Xcode discovery are dropped from the path because the
-+  // VS Code extension owns its own cache and Xcode is out of scope for v1.
-+  return [];
++  // collectors only. Claude Code, Codex, and OpenCode are gathered by
++  // `collectExternalHarnesses`; GitHub Copilot CLI (`~/.copilot`) is discovered
++  // here because it shares the VS Code CLI-events parse path. VS Code
++  // workspaceStorage and Xcode discovery are dropped — the VS Code extension owns
++  // its own cache and Xcode is out of scope for v1.
++  return findVsCodeDirs().filter(d => d.includes('.copilot'));
  }
  
  function partitionDirs(logsDirs: string[]): { vsCodeDirs: string[]; xcodeDirs: string[] } {
-diff --git a/sidecar/vendor/core/parser-main.test.ts b/sidecar/vendor/core/parser-main.test.ts
-index f0320f3..511537a 100644
---- a/sidecar/vendor/core/parser-main.test.ts
-+++ b/sidecar/vendor/core/parser-main.test.ts
-@@ -138,11 +138,14 @@ describe('LOAD_PHASES', () => {
- });
- 
- describe('findLogsDirs', () => {
--  it('combines VS Code and Xcode directories', () => {
-+  it('drops VS Code and Xcode discovery (fork divergence D8: CLI harnesses only)', () => {
-+    // The JetBrains port collects CLI harnesses (Claude Code, Codex, OpenCode,
-+    // Copilot CLI) via collectExternalHarnesses, independent of this list, and
-+    // ships v1 without VS Code workspaceStorage / Xcode discovery.
-     vi.mocked(findVsCodeDirs).mockReturnValue(['/logs/vscode-a', '/logs/vscode-b']);
-     vi.mocked(findXcodeDirs).mockReturnValue([XCODE_DIR]);
- 
--    expect(findLogsDirs()).toEqual(['/logs/vscode-a', '/logs/vscode-b', XCODE_DIR]);
-+    expect(findLogsDirs()).toEqual([]);
-   });
- });
- 
