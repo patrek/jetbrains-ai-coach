@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:09:49.090Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:21:40.650Z
 > Files: 307 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -36,7 +36,7 @@
 
 ## .github/workflows/
 
-- `ci.yml` — CI: CI (~645 tok)
+- `ci.yml` — CI: CI (~678 tok)
 
 ## .gradle/
 
@@ -92,7 +92,7 @@
 
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-1-plan.md` — feat(jetbrains): repo scaffold and upstream sync pipeline - Standard (~1011 tok)
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-2-plan.md` — feat(jetbrains): Node sidecar stdio RPC server - Standard (~1303 tok)
-- `2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md` — feat(jetbrains): Kotlin shell (tool window + JCEF + bridge + supervisor) - Standard (~3240 tok)
+- `2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md` — feat(jetbrains): Kotlin shell (tool window + JCEF + bridge + supervisor) - Standard (~5552 tok)
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-4-plan.md` — feat(jetbrains): theme integration and webview state persistence - Standard (~930 tok)
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-5-plan.md` — feat(jetbrains): trust gate UI and project rule scoping - Standard (~1069 tok)
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-6-plan.md` — feat(jetbrains): MCP stdio server + host-method completion - Standard (~1257 tok)

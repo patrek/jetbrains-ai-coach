@@ -96,3 +96,14 @@
 | 11:09 | Edited plugin/src/main/resources/webview/index.html | 1→6 lines | ~46 |
 | 11:09 | Edited plugin/src/main/resources/webview/index.html | 2→2 lines | ~28 |
 | 11:14 | Session end: 22 writes across 9 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 26 reads | ~104099 tok |
+| 11:16 | Session end: 22 writes across 9 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 26 reads | ~104099 tok |
+| 11:19 | Edited .github/workflows/ci.yml | 5→8 lines | ~74 |
+
+## Session: 2026-06-15 11:19
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:21 | Edited docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md | modified fixes() | ~518 |
+
+## Session summary (2026-06-15, part-3 render + image + runtime fixes)
+Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated and pushed (8 commits). Root causes: (1) late-progress race overwriting dashboard → _dataIsReady guard; (2) stale sidecar runtime extraction (jar:// sandbox defeated the file:// dev heuristic) → SHA-256 fingerprint re-extraction — this had been silently stranding ALL sidecar changes; (3) Coding Moments empty → Claude CLI image extractor + sourceFilePath + CACHE_VERSION bump. Added first-paint loading placeholder and gated :plugin:test in CI. Skill Finder llm-unavailable/discoverCatalog confirmed as ADR 0006/0009 deferrals (part 6). Vendor changes carried as patches 0004/0005 (ADR 0003); full sync + 1158 vendored tests + plugin lifecycle tests green. Stopping point for the PR per user.

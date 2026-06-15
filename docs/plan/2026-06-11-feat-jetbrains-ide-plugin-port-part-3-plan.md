@@ -90,6 +90,18 @@ Warm start to interactive dashboard ≤ 5s against the part-2 fixture dataset.
 **Branch:** `feat/jetbrains-part-3-kotlin-shell`
 **PR:** https://github.com/patrek/jetbrains-ai-coach/pull/4
 
+### Update (2026-06-15, later session) — render blocker RESOLVED
+
+The dashboard now renders and stays in IDEA (verified live). Root causes and fixes (all committed/pushed to PR #4):
+
+- **Dashboard render race** (`fix(webview)`, patch 0004): `handleProgress` called `ensureLoadingUI()` unconditionally, so trailing `progress` pushes (warm-up tail + post-ready RPC activity) re-painted the loading screen over the dashboard. Wired the dead `_dataIsReady` guard. The earlier `57620dc` sidecar reorder only treated the symptom.
+- **Stale runtime extraction** (`fix(runtime)`): the `3be5121` `file://`-vs-`jar://` heuristic was wrong — the runIde sandbox jars the plugin (`jar://`), so `ensureExtracted` reused the first extraction forever and **no sidecar change ever reached the IDE** (the webview bundle, served from the JAR, masked this). Replaced with a SHA-256 fingerprint of the bundled `main.js` (`runtime/<ver>/.bundle-hash`).
+- **Coding Moments empty** (`fix(sidecar)`, patch 0005): added `extractCliSessionImages` (Claude `.jsonl` base64 image blocks → data URIs) + `session.sourceFilePath`; `getSessionImages` dispatches on source kind with a Claude fallback; `CACHE_VERSION` 9→10.
+- **First-paint placeholder** (`fix(webview)`): static themed spinner in `index.html` so the panel is never blank during startup.
+- **CI**: now runs `:plugin:test` (lifecycle suite was previously ungated).
+
+Acceptance criteria 3/4/6 are test-gated; 1 (IDEA), 2 (parse-in-progress) and the render path are verified live. Remaining are verification-only gaps (non-IDEA visual confirm, forcing each failure panel, full in-IDE project-scope `saveRule` e2e, mock-bridge harness not run in CI). **Skill Finder's `llm-unavailable` / `discoverCatalog` errors are accepted deferrals** (ADR 0006/0009), not bugs — deferred to part 6.
+
 ### What is done
 
 All code was written and committed before debugging began. The plugin builds, loads in the Gradle `runIde` sandbox, JCEF opens, Node is detected, the sidecar starts, finds 147 sessions, and emits `dataReady`. All Kotlin tests pass (NodeDetectorTest ×8, SidecarSupervisorTest ×11). All 1154 sidecar tests pass.
