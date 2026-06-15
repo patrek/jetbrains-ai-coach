@@ -45,7 +45,14 @@ object SidecarRuntime {
     fun ensureExtracted(pluginVersion: String): Path {
         val target = versionDir(pluginVersion)
         val mainJs = target.resolve("main.js")
-        if (isComplete(target)) return mainJs
+        // In the Gradle runIde dev sandbox, the bundle is on a file:// classpath
+        // resource and changes every build. The plugin version string never changes
+        // between dev runs, so the version-stamp cache would reuse the first
+        // extraction indefinitely. Skip the completion check so each runIde picks
+        // up the freshly-built bundle. JAR-based (production) deployments are
+        // unaffected: they use the jar:// protocol and still benefit from the cache.
+        val inDevSandbox = SidecarRuntime::class.java.getResource("/sidecar/main.js")?.protocol == "file"
+        if (!inDevSandbox && isComplete(target)) return mainJs
 
         Files.createDirectories(target)
         Files.createDirectories(logFile.parent)
