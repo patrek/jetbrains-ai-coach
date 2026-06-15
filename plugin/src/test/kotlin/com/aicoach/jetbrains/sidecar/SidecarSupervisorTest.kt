@@ -78,8 +78,8 @@ class SidecarSupervisorTest {
         transports.deliver(hello())
 
         // Both windows independently number their first request "1".
-        supervisor.forward(w1, originalId = "1", method = "getStats", params = null, projectRoot = "/a")
-        supervisor.forward(w2, originalId = "1", method = "getStats", params = null, projectRoot = "/b")
+        supervisor.forward(w1, originalId = "1", method = "getStats", params = null, projectRoot = "/a", safeMode = false)
+        supervisor.forward(w2, originalId = "1", method = "getStats", params = null, projectRoot = "/b", safeMode = false)
 
         // Correlation ids are assigned in order: c0 -> w1, c1 -> w2.
         transports.deliver("""{"type":"response","id":"c1","data":{"for":"w2"}}""")
@@ -97,12 +97,91 @@ class SidecarSupervisorTest {
         supervisor.start()
         transports.deliver(hello())
 
-        supervisor.forward(w1, "1", "saveRule", JsonObject().apply { addProperty("markdown", "x") }, "/home/u/proj")
+        supervisor.forward(w1, "1", "saveRule", JsonObject().apply { addProperty("markdown", "x") }, "/home/u/proj", safeMode = false)
 
         val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
         assertEquals("request", sent.get("type").asString)
         assertEquals("/home/u/proj", sent.get("projectRoot").asString)
+        assertEquals(false, sent.get("safeMode").asBoolean)
         assertEquals("x", sent.getAsJsonObject("params").get("markdown").asString)
+    }
+
+    @Test
+    fun `forward stamps safeMode so the sidecar hard-blocks an untrusted project layer`() {
+        val w1 = RecordingClient("w1")
+        supervisor.registerClient(w1)
+        supervisor.start()
+        transports.deliver(hello())
+
+        supervisor.forward(w1, "1", "getAntiPatterns", null, "/home/u/proj", safeMode = true)
+
+        val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
+        assertEquals(true, sent.get("safeMode").asBoolean)
+    }
+
+    @Test
+    fun `trust host-requests delegate to the injected trust store`() {
+        val store = RecordingTrustStore()
+        val sup = SidecarSupervisor(transports, scheduler, { now }, trustStore = store)
+        sup.registerClient(RecordingClient("w1"))
+        sup.start()
+        transports.deliver(hello())
+
+        store.entries["aiEngineerCoach.ruleTrust.v1"] = JsonParser.parseString("""{"f":{"hash":"h"}}""")
+        transports.deliver("""{"type":"host-request","id":"h0","method":"trust/get","params":{}}""")
+        transports.deliver("""{"type":"host-request","id":"h1","method":"trust/update","params":{"key":"k","value":{"hash":"z"}}}""")
+
+        val replies = transports.latest().sent.map { JsonParser.parseString(it).asJsonObject }
+            .filter { it.get("type").asString == "host-response" }
+        // trust/get returns the store snapshot.
+        assertEquals("h", replies[0].getAsJsonObject("data").getAsJsonObject("aiEngineerCoach.ruleTrust.v1").get("f").asJsonObject.get("hash").asString)
+        // trust/update wrote the key/value through to the store.
+        assertEquals("z", store.entries["k"]?.asJsonObject?.get("hash")?.asString)
+    }
+
+    @Test
+    fun `hostCall delivers the response to the caller, not a webview`() {
+        val w1 = RecordingClient("w1")
+        supervisor.registerClient(w1)
+        supervisor.start()
+        transports.deliver(hello())
+
+        var received: com.google.gson.JsonElement? = null
+        supervisor.hostCall("getLocalRulesPending", null, "/proj", safeMode = false) { received = it }
+
+        // The request went out with a host-call correlation id (prefix 'k').
+        val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
+        val id = sent.get("id").asString
+        assertEquals("getLocalRulesPending", sent.get("method").asString)
+        transports.deliver("""{"type":"response","id":"$id","data":{"pending":[]}}""")
+
+        assertEquals(0, received!!.asJsonObject.getAsJsonArray("pending").size())
+        assertEquals(0, w1.responses.size) // never reached the webview
+    }
+
+    @Test
+    fun `hostCall fails fast when the sidecar is not connected`() {
+        supervisor.start() // started but no hello delivered yet -> not connected
+
+        var received: JsonElement? = null
+        supervisor.hostCall("getLocalRulesPending", null, "/proj", safeMode = false) { received = it }
+
+        // The caller is answered synchronously with an error, never left hanging.
+        assertTrue(received!!.asJsonObject.has("error"))
+    }
+
+    @Test
+    fun `a crash fails in-flight host calls instead of hanging the caller`() {
+        supervisor.registerClient(RecordingClient("w1"))
+        supervisor.start()
+        transports.deliver(hello())
+
+        var received: JsonElement? = null
+        supervisor.hostCall("getLocalRulesPending", null, null, safeMode = false) { received = it }
+        // No response arrives; the sidecar crashes.
+        supervisor.onExit(1)
+
+        assertTrue(received!!.asJsonObject.has("error"))
     }
 
     @Test
@@ -225,7 +304,7 @@ class SidecarSupervisorTest {
         supervisor.registerClient(w1)
         supervisor.start()
         transports.deliver(hello())
-        supervisor.forward(w1, "1", "getStats", null, null)
+        supervisor.forward(w1, "1", "getStats", null, null, safeMode = false)
 
         supervisor.unregisterClient(w1)
         // A late response for the gone window is simply dropped (no crash).
@@ -247,6 +326,12 @@ class SidecarSupervisorTest {
         override fun onConnectionError(message: String) { errors += message }
         override fun onResponse(originalId: String, data: JsonElement) { responses += originalId to data }
         override fun onPush(message: JsonObject) { pushes += message }
+    }
+
+    private class RecordingTrustStore : TrustStore {
+        val entries = mutableMapOf<String, JsonElement>()
+        override fun snapshot(): JsonObject = JsonObject().apply { entries.forEach { (k, v) -> add(k, v) } }
+        override fun put(key: String, value: JsonElement) { entries[key] = value }
     }
 
     private class FakeTransport(val sink: SidecarSink) : SidecarTransport {

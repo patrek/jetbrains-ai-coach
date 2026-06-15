@@ -168,3 +168,97 @@ Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated
 | 14:34 | Edited plugin/src/main/resources/webview/bootstrap.js | removed 15 lines | ~24 |
 | 14:35 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 19 reads | ~86291 tok |
 | 14:35 | fix: theme-change reload hang (bug-030) — webview waits on one-shot dataReady; dropped soft reload, live-inject only | WebviewThemeSync.kt | verified in IDE: theme switch recolors live, no hang | ~12k |
+| 14:43 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:44 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:45 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:47 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:52 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:55 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 14:56 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 15:00 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+| 15:01 | Session end: 39 writes across 13 files (ThemeCssProvider.kt, AssetSchemeHandler.kt, WebviewThemeSync.kt, CoachToolWindowFactory.kt, ThemeCssProviderTest.kt) | 20 reads | ~86291 tok |
+
+## Session: 2026-06-15 15:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | 2→3 lines | ~61 |
+| 15:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | 6→7 lines | ~83 |
+| 15:16 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustStoreService.kt | — | ~779 |
+| 15:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | 4→8 lines | ~130 |
+| 15:16 | Created plugin/src/test/kotlin/com/aicoach/jetbrains/trust/TrustStoreServiceTest.kt | — | ~921 |
+| 15:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | added 1 condition(s) | ~595 |
+| 15:16 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | modified handleResponse() | ~139 |
+| 15:16 | Created sidecar/src/rule-scope.ts | — | ~2095 |
+| 15:17 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | added 1 condition(s) | ~302 |
+| 15:17 | Edited sidecar/src/rpc-handlers.ts | added 1 import(s) | ~80 |
+| 15:17 | Edited sidecar/src/rpc-handlers.ts | expanded (+6 lines) | ~101 |
+| 15:17 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | modified snapshot() | ~267 |
+| 15:17 | Edited sidecar/src/rpc-handlers.ts | added optional chaining | ~318 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | inline fix | ~22 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | added 1 import(s) | ~57 |
+| 15:17 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarService.kt | added 2 import(s) | ~46 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | 6→7 lines | ~40 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | 3→4 lines | ~62 |
+| 15:17 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarService.kt | modified snapshot() | ~170 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | 4→9 lines | ~116 |
+| 15:17 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarService.kt | expanded (+11 lines) | ~182 |
+| 15:17 | Edited sidecar/src/rpc-server.ts | added nullish coalescing | ~114 |
+| 15:17 | Edited sidecar/test/harness.ts | added 1 condition(s) | ~223 |
+| 15:18 | Created sidecar/test/trust-gate.test.ts | — | ~2187 |
+| 15:18 | Edited sidecar/test/trust-gate.test.ts | inline fix | ~17 |
+| 15:18 | Edited sidecar/test/trust-gate.test.ts | 2→2 lines | ~49 |
+| 15:20 | Trust gate + per-request project rule scoping (sidecar) | rule-scope.ts, rpc-handlers.ts, rpc-server.ts, harness.ts, trust-gate.test.ts | 1164 tests green | ~9000 |
+| 15:21 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustApprovalDialog.kt | — | ~1253 |
+| 15:21 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/trust/LocalRuleWatcher.kt | — | ~1132 |
+| 15:22 | Edited plugin/src/main/resources/META-INF/plugin.xml | 6→11 lines | ~121 |
+| 15:22 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | — | ~1696 |
+| 15:22 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | added 1 import(s) | ~51 |
+| 15:22 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 3→4 lines | ~78 |
+| 15:22 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 2→3 lines | ~37 |
+| 15:23 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 2→6 lines | ~71 |
+| 15:23 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified forwardOrQueue() | ~83 |
+| 15:23 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | modified safeMode() | ~81 |
+| 15:23 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified synchronized() | ~91 |
+| 15:23 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | modified dispose() | ~50 |
+| 15:23 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | 2→2 lines | ~66 |
+| 15:24 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | added optional chaining | ~824 |
+| 15:24 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | inline fix | ~24 |
+| 15:24 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | 3→3 lines | ~32 |
+| 15:24 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | modified snapshot() | ~103 |
+| 15:26 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | 2→2 lines | ~26 |
+| 15:26 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | inline fix | ~14 |
+
+## Session 2026-06-15 — Part 5: trust gate UI + project rule scoping
+
+| time | description | files | outcome | ~tokens |
+|------|-------------|-------|---------|---------|
+| --:-- | Sidecar trust gate install + per-request project scoping (mutex, TOCTOU, metric-snapshot workaround) | sidecar/src/rule-scope.ts, rpc-handlers.ts, rpc-server.ts | 1164 sidecar tests green incl. 6 new | agent |
+| --:-- | Kotlin host trust store backing trust/get·update (D5) | trust/TrustStoreService.kt (+test) | 6 tests green | agent |
+| --:-- | Supervisor: TrustStore injection + hostCall path + safeMode envelope | sidecar/SidecarSupervisor.kt, SidecarService.kt | 16 supervisor tests green | done |
+| --:-- | Trust dialog + controller + file watcher + reviewLocalRules wiring + safeMode stamping | trust/TrustApprovalDialog.kt, TrustGateController.kt, LocalRuleWatcher.kt, jcef/WebviewBridge.kt, plugin.xml | compiles, plugin tests green | done |
+| 15:32 | Created docs/reviews/code-simplicity-review.md | — | ~2744 |
+| 15:32 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/LocalRuleWatcher.kt | modified if() | ~186 |
+| 15:32 | Created docs/reviews/pr-readiness-review-part5.md | — | ~1831 |
+| 15:33 | Created docs/reviews/security-review.md | — | ~4091 |
+| 15:33 | Created docs/reviews/architecture-review.md | — | ~2886 |
+| 15:33 | Session end: 50 writes across 19 files (SidecarSupervisor.kt, TrustStoreService.kt, TrustStoreServiceTest.kt, rule-scope.ts, rpc-handlers.ts) | 41 reads | ~126112 tok |
+| 15:34 | Created docs/reviews/test-quality-review-trust-gate.md | — | ~3994 |
+| 15:34 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | modified onExit() | ~87 |
+| 15:35 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt | added 1 condition(s) | ~153 |
+| 15:36 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | removed 16 lines | ~12 |
+| 15:36 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | inline fix | ~14 |
+| 15:36 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | inline fix | ~14 |
+| 15:36 | Created sidecar/test/_probe.test.ts | — | ~344 |
+| 15:36 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt | added optional chaining | ~320 |
+| 15:36 | Edited sidecar/test/_probe.test.ts | 5→8 lines | ~120 |
+| 15:36 | Created plugin/src/test/kotlin/com/aicoach/jetbrains/trust/TrustGateParsingTest.kt | — | ~572 |
+| 15:37 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt | modified hostCall() | ~297 |
+| 15:37 | Edited sidecar/test/trust-gate.test.ts | added 1 import(s) | ~48 |
+| 15:37 | Edited plugin/src/test/kotlin/com/aicoach/jetbrains/trust/TrustStoreServiceTest.kt | 5→4 lines | ~45 |
+| 15:37 | Edited sidecar/test/trust-gate.test.ts | expanded (+8 lines) | ~391 |
+| 15:37 | Edited sidecar/test/trust-gate.test.ts | expanded (+8 lines) | ~222 |
+| 15:37 | Edited sidecar/test/trust-gate.test.ts | modified BASELINE() | ~661 |
+| 15:38 | Edited sidecar/test/trust-gate.test.ts | expanded (+7 lines) | ~407 |
+| 15:38 | Session end: 67 writes across 22 files (SidecarSupervisor.kt, TrustStoreService.kt, TrustStoreServiceTest.kt, rule-scope.ts, rpc-handlers.ts) | 43 reads | ~137772 tok |
+| 15:40 | Session end: 67 writes across 22 files (SidecarSupervisor.kt, TrustStoreService.kt, TrustStoreServiceTest.kt, rule-scope.ts, rpc-handlers.ts) | 43 reads | ~137772 tok |

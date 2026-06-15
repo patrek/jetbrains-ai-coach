@@ -543,6 +543,246 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-15T18:34:11.329Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-06-15T19:16:41.541Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 17→55 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:16:41.541Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-06-15T19:17:01.391Z",
+      "error_message": "Null/undefined access in ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:17:01.391Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-06-15T19:17:15.179Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/src/rpc-handlers.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:17:15.179Z"
+    },
+    {
+      "id": "bug-036",
+      "timestamp": "2026-06-15T19:17:48.297Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/src/rpc-server.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:17:48.297Z"
+    },
+    {
+      "id": "bug-037",
+      "timestamp": "2026-06-15T19:17:58.249Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/test/harness.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:17:58.249Z"
+    },
+    {
+      "id": "bug-038",
+      "timestamp": "2026-06-15T19:18:51.438Z",
+      "error_message": "Wrong reference: antiPatterns should be patterns",
+      "file": "sidecar/test/trust-gate.test.ts",
+      "root_cause": "Used \"antiPatterns\" instead of \"patterns\"",
+      "fix": "Changed antiPatterns → patterns",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-15T19:18:57.526Z"
+    },
+    {
+      "id": "bug-039",
+      "timestamp": "2026-06-15T19:23:53.367Z",
+      "error_message": "Incorrect value in code",
+      "file": "plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt",
+      "root_cause": "Had \")\n        supervisor.forward(w2, originalId = \"",
+      "fix": "Changed to \", safeMode = false)\n        supervisor.forward(w2",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:23:53.367Z"
+    },
+    {
+      "id": "bug-040",
+      "timestamp": "2026-06-15T19:24:10.477Z",
+      "error_message": "Null/undefined access in ",
+      "file": "plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:24:10.477Z"
+    },
+    {
+      "id": "bug-041",
+      "timestamp": "2026-06-15T19:24:27.805Z",
+      "error_message": "Wrong reference: clock should be now",
+      "file": "plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisorTest.kt",
+      "root_cause": "Used \"clock\" instead of \"now\"",
+      "fix": "Changed clock → now",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:24:27.805Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-06-15T19:26:27.780Z",
+      "error_message": "Wrong reference: TrustedProjects should be isTrusted",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt",
+      "root_cause": "Used \"TrustedProjects\" instead of \"isTrusted\"",
+      "fix": "Changed TrustedProjects → isTrusted",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-15T19:26:33.341Z"
+    },
+    {
+      "id": "bug-043",
+      "timestamp": "2026-06-15T19:32:58.175Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/trust/LocalRuleWatcher.kt",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 9→15 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:32:58.176Z"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-06-15T19:36:13.344Z",
+      "error_message": "Wrong reference: parsePending should be parsePendingRules",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt",
+      "root_cause": "Used \"parsePending\" instead of \"parsePendingRules\"",
+      "fix": "Changed parsePending → parsePendingRules",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-15T19:36:20.635Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-06-15T19:36:39.086Z",
+      "error_message": "Null/undefined access in ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/trust/TrustGateController.kt",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:36:39.086Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-06-15T19:37:48.360Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "sidecar/test/trust-gate.test.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:37:48.360Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-06-15T19:38:13.839Z",
+      "error_message": "Significant refactor of ",
+      "file": "sidecar/test/trust-gate.test.ts",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 16→23 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T19:38:13.839Z"
     }
   ]
 }

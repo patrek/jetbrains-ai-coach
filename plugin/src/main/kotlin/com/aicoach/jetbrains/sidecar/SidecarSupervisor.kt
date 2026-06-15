@@ -19,8 +19,9 @@ import com.google.gson.JsonParser
  *     the `response` back to the originating client with its original id;
  *   - **broadcast** `progress`/`dataReady` to every live client (all windows
  *     share the one sidecar and the one global dataset, decision D4);
- *   - **answer** `host-request`s via the stubbed trust router (decision D5; the
- *     real [com.aicoach.jetbrains] trust store lands in part 5);
+ *   - **answer** `host-request`s by delegating to the injected [TrustStore]
+ *     (decision D5: rule-approval authority lives on the Kotlin host). A
+ *     `host-request` is fully consumed here and never leaks into a webview;
  *   - **supervise** the process: crash -> backoff restart up to [MAX_RESTARTS],
  *     with the counter reset after a stable run or a user-initiated restart.
  *
@@ -31,6 +32,7 @@ class SidecarSupervisor(
     private val transportFactory: SidecarTransportFactory,
     private val scheduler: Scheduler,
     private val clock: () -> Long,
+    private val trustStore: TrustStore = EmptyTrustStore,
     private val expectedProtocolVersion: String = EXPECTED_PROTOCOL_VERSION,
 ) : SidecarSink {
 
@@ -47,6 +49,10 @@ class SidecarSupervisor(
     private val clients = LinkedHashMap<String, Client>()
     // correlationId -> (clientId, originalWebviewId)
     private val correlations = HashMap<String, Pair<String, String>>()
+    // correlationId -> Kotlin callback, for host-originated requests ([hostCall])
+    // whose responses are consumed by the host (e.g. the trust dialog) rather
+    // than routed back to a webview.
+    private val hostCalls = HashMap<String, (JsonElement) -> Unit>()
     private var correlationSeq = 0L
 
     private var transport: SidecarTransport? = null
@@ -121,19 +127,57 @@ class SidecarSupervisor(
     /** Forward a (non-intercepted) webview request to the sidecar, namespacing
      *  its id so the reply routes back to [client] with [originalId]. */
     @Synchronized
-    fun forward(client: Client, originalId: String, method: String, params: JsonObject?, projectRoot: String?) {
+    fun forward(
+        client: Client,
+        originalId: String,
+        method: String,
+        params: JsonObject?,
+        projectRoot: String?,
+        safeMode: Boolean,
+    ) {
         val correlationId = "c${correlationSeq++}"
         correlations[correlationId] = client.clientId to originalId
-        val envelope = JsonObject().apply {
-            addProperty("type", "request")
-            addProperty("id", correlationId)
-            addProperty("method", method)
-            if (params != null) add("params", params)
-            // The sidecar consumes this as a filesystem directory (getProjectRulesDir);
-            // it must be the project's absolute root path, never an IDE project id.
-            if (!projectRoot.isNullOrBlank()) addProperty("projectRoot", projectRoot)
+        send(requestEnvelope(correlationId, method, params, projectRoot, safeMode))
+    }
+
+    /** Issue a host-originated request (e.g. the trust dialog asking the sidecar
+     *  for the pending list) and deliver its `response` data to [onResult]
+     *  instead of any webview. [onResult] runs on the supervisor's stream thread
+     *  while holding the supervisor lock — keep it light (marshal to the EDT). */
+    @Synchronized
+    fun hostCall(
+        method: String,
+        params: JsonObject?,
+        projectRoot: String?,
+        safeMode: Boolean,
+        onResult: (JsonElement) -> Unit,
+    ) {
+        if (!connected) {
+            onResult(JsonObject().apply { addProperty("error", "sidecar not connected") })
+            return
         }
-        send(envelope)
+        val correlationId = "k${correlationSeq++}"
+        hostCalls[correlationId] = onResult
+        send(requestEnvelope(correlationId, method, params, projectRoot, safeMode))
+    }
+
+    private fun requestEnvelope(
+        id: String,
+        method: String,
+        params: JsonObject?,
+        projectRoot: String?,
+        safeMode: Boolean,
+    ): JsonObject = JsonObject().apply {
+        addProperty("type", "request")
+        addProperty("id", id)
+        addProperty("method", method)
+        if (params != null) add("params", params)
+        // The sidecar consumes this as a filesystem directory (getProjectRulesDir);
+        // it must be the project's absolute root path, never an IDE project id.
+        if (!projectRoot.isNullOrBlank()) addProperty("projectRoot", projectRoot)
+        // Untrusted (safe-mode) projects get their project rule/metric layer
+        // hard-blocked in the sidecar regardless of per-file approval (D5).
+        addProperty("safeMode", safeMode)
     }
 
     // ---- sidecar -> host (SidecarSink) ----------------------------------
@@ -154,6 +198,9 @@ class SidecarSupervisor(
     override fun onExit(code: Int) {
         transport = null
         connected = false
+        // Correlations don't survive a restart: fail any in-flight host calls so
+        // a host caller (e.g. the trust dialog) gets an error instead of hanging.
+        failHostCalls()
         if (stopping) return
 
         val uptime = clock() - startedAt
@@ -194,20 +241,29 @@ class SidecarSupervisor(
 
     private fun handleResponse(message: JsonObject) {
         val correlationId = message.get("id")?.asStringOrNull() ?: return
+        val data = message.get("data") ?: JsonObject()
+        // Host-originated calls ([hostCall]) are consumed by the host, never a webview.
+        hostCalls.remove(correlationId)?.let { it(data); return }
         val (clientId, originalId) = correlations.remove(correlationId) ?: return
         val client = clients[clientId] ?: return
-        client.onResponse(originalId, message.get("data") ?: JsonObject())
+        client.onResponse(originalId, data)
     }
 
     private fun handleHostRequest(message: JsonObject) {
         val id = message.get("id")?.asStringOrNull() ?: return
         val method = message.get("method")?.asStringOrNull()
-        // Stubbed trust router (decision D5). Until TrustStoreService lands in
-        // part 5: report nothing trusted, ack updates. A host-request must never
-        // leak into a webview, so it is fully consumed here.
+        val params = message.get("params")?.takeIf { it.isJsonObject }?.asJsonObject
+        // Trust authority lives on the Kotlin host (decision D5): delegate to the
+        // injected [TrustStore]. A host-request is fully consumed here so it can
+        // never leak into a webview.
         val data: JsonElement = when (method) {
-            "trust/get" -> JsonObject()
-            "trust/update" -> JsonObject().apply { addProperty("ok", true) }
+            "trust/get" -> trustStore.snapshot()
+            "trust/update" -> {
+                val key = params?.get("key")?.asStringOrNull()
+                val value = params?.get("value")
+                if (key != null && value != null) trustStore.put(key, value)
+                JsonObject().apply { addProperty("ok", true) }
+            }
             else -> JsonObject().apply { addProperty("ok", false) }
         }
         val reply = JsonObject().apply {
@@ -216,6 +272,16 @@ class SidecarSupervisor(
             add("data", data)
         }
         send(reply)
+    }
+
+    /** Resolve every pending host call with an error so callers never hang when
+     *  the sidecar dies (the sidecar side has its own timeout; the host didn't). */
+    private fun failHostCalls() {
+        if (hostCalls.isEmpty()) return
+        val pending = HashMap(hostCalls)
+        hostCalls.clear()
+        val error = JsonObject().apply { addProperty("error", "sidecar disconnected") }
+        for (cb in pending.values) cb(error)
     }
 
     private fun broadcast(message: JsonObject) {
@@ -268,6 +334,28 @@ fun interface SidecarTransportFactory {
 interface SidecarSink {
     fun onLine(line: String)
     fun onExit(code: Int)
+}
+
+/**
+ * The Kotlin-host rule-trust store the sidecar reaches over `trust/get` /
+ * `trust/update` (decision D5). Kept as an interface here so the supervisor
+ * stays free of any IntelliJ dependency and can be driven by a fake in tests;
+ * the production binding ([com.aicoach.jetbrains.trust.TrustStoreService]) is
+ * injected by [SidecarService].
+ */
+interface TrustStore {
+    /** Full memento snapshot answering `trust/get`: `{ "<key>": <value>, ... }`. */
+    fun snapshot(): JsonObject
+
+    /** Persist one memento key/value from `trust/update`. */
+    fun put(key: String, value: JsonElement)
+}
+
+/** Default trust store: nothing approved, updates accepted but dropped. Keeps
+ *  the supervisor self-contained in tests that don't exercise persistence. */
+object EmptyTrustStore : TrustStore {
+    override fun snapshot(): JsonObject = JsonObject()
+    override fun put(key: String, value: JsonElement) = Unit
 }
 
 /** A cancellable scheduled task. */

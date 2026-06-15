@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T18:34:11.316Z
-> Files: 318 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T19:38:13.812Z
+> Files: 330 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/p2gen/sidecar/vendor/core/
 
@@ -106,9 +106,12 @@
 
 ## docs/reviews/
 
-- `architecture-review.md` — Architecture Review — Part 4 (theme integration + state persistence) (~3157 tok)
-- `code-simplicity-review.md` — Code Simplicity Review — Part 4 (Theme Integration & Webview State) (~3543 tok)
+- `architecture-review.md` — Architecture Review — Part 5 Trust Gate (~2706 tok)
+- `code-simplicity-review.md` — Code Simplicity Review — Part 5 (Trust Gate UI & Project Rule Scoping) (~2573 tok)
+- `pr-readiness-review-part5.md` — PR Readiness Review: Part-5 Trust Gate UI and Project Rule Scoping (~1716 tok)
 - `pr-readiness-review.md` — PR Readiness Review: Part-4 JetBrains Plugin — Theme Integration & State Persistence (~2638 tok)
+- `security-review.md` — Security Review — Part 5: Trust Gate (Rule/Metric DSL) (~3836 tok)
+- `test-quality-review-trust-gate.md` — Test Quality Review — Trust-Gate Feature (~3745 tok)
 - `test-quality-review.md` — Test Quality Review — Part 4: Theme Integration & State Persistence (~2780 tok)
 - `vgv-review.md` — VGV Code Review — Part 4: Theme Integration & Webview State Persistence (~2448 tok)
 
@@ -128,7 +131,7 @@
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/
 
 - `AssetSchemeHandler.kt` — Serves the webview bundle to JCEF from the plugin JAR under a real origin. (~1721 tok)
-- `WebviewBridge.kt` — The per-window JS<->host relay: one bridge per open dashboard tool window. (~2683 tok)
+- `WebviewBridge.kt` — The per-window JS<->host relay: one bridge per open dashboard tool window. (~2791 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/settings/
 
@@ -140,8 +143,8 @@
 - `NodeDetector.kt` — Locates a usable Node.js (>= 20) for the sidecar. (~2848 tok)
 - `SidecarProcess.kt` — The production [SidecarTransport]: a single Node child process plus the NDJSON (~1165 tok)
 - `SidecarRuntime.kt` — On-disk layout and lifecycle for the extracted Node runtime. (~2060 tok)
-- `SidecarService.kt` — The one application-level sidecar shared by every IDE window (decision D4). (~1058 tok)
-- `SidecarSupervisor.kt` — The app-level sidecar's protocol policy, free of any IntelliJ or process (~2905 tok)
+- `SidecarService.kt` — The one application-level sidecar shared by every IDE window (decision D4). (~1290 tok)
+- `SidecarSupervisor.kt` — The app-level sidecar's protocol policy, free of any IntelliJ or process (~3900 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/theme/
 
@@ -152,9 +155,16 @@
 
 - `CoachToolWindowFactory.kt` — The dashboard tool window. Lazy and `DumbAware` so it opens during indexing. (~2045 tok)
 
+## plugin/src/main/kotlin/com/aicoach/jetbrains/trust/
+
+- `LocalRuleWatcher.kt` — Watches the personal and project rule/metric directories for edits so the (~1214 tok)
+- `TrustApprovalDialog.kt` — The rule/metric trust review dialog (decision D5). (~1253 tok)
+- `TrustGateController.kt` — One trust-pending local rule/metric, as surfaced by the sidecar. (~1780 tok)
+- `TrustStoreService.kt` — Host-side persistent store backing the sidecar's `TrustMemento` RPC contract (~779 tok)
+
 ## plugin/src/main/resources/META-INF/
 
-- `plugin.xml` (~479 tok)
+- `plugin.xml` (~528 tok)
 
 ## plugin/src/main/resources/icons/
 
@@ -172,11 +182,16 @@
 ## plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/
 
 - `NodeDetectorTest.kt` — Cascade logic for [NodeDetector] with the version probe and filesystem checks (~1580 tok)
-- `SidecarSupervisorTest.kt` — Drives [SidecarSupervisor]'s protocol and lifecycle policy with fakes — no (~2958 tok)
+- `SidecarSupervisorTest.kt` — Drives [SidecarSupervisor]'s protocol and lifecycle policy with fakes — no (~4020 tok)
 
 ## plugin/src/test/kotlin/com/aicoach/jetbrains/theme/
 
 - `ThemeCssProviderTest.kt` — Serialization and mapping logic for [ThemeCssProvider] with the IDE theme (~1380 tok)
+
+## plugin/src/test/kotlin/com/aicoach/jetbrains/trust/
+
+- `TrustGateParsingTest.kt` — Unit tests for [parsePendingRules] — the pure wire-parsing of the sidecar's (~572 tok)
+- `TrustStoreServiceTest.kt` — Pure logic for [TrustStoreService]: [TrustStoreService.snapshot], (~905 tok)
 
 ## sidecar/
 
@@ -193,17 +208,20 @@
 - `host-shims.ts` — A request channel to the IDE host, multiplexed over the sidecar's stdout. (~983 tok)
 - `main.ts` — Declares protocolWrite (~694 tok)
 - `rpc-handlers.test.ts` — HandlerContext: emptyParseResult, ctx (~1108 tok)
-- `rpc-handlers.ts` — Per-request context handed to every handler. (~2480 tok)
-- `rpc-server.ts` — Protocol version reported in the `hello` handshake. (~2636 tok)
+- `rpc-handlers.ts` — Per-request context handed to every handler. (~2836 tok)
+- `rpc-server.ts` — Protocol version reported in the `hello` handshake. (~2905 tok)
+- `rule-scope.ts` — Trust-pending file as surfaced to the webview (content withheld). (~2095 tok)
 
 ## sidecar/test/
 
+- `_probe.test.ts` — Declares root (~344 tok)
 - `global-setup.ts` — Exports setup (~295 tok)
-- `harness.ts` — Answer a sidecar host-request, mirroring the part-3 bridge's stubbed trust (~1495 tok)
+- `harness.ts` — Answer a sidecar host-request, mirroring the part-3 bridge's stubbed trust (~1519 tok)
 - `host-channel.test.ts` — Declares PERSONAL_RULE (~661 tok)
 - `paths.ts` — Repo-relative sidecar dir (`.../sidecar`). (~369 tok)
 - `rpc-methods.ts` — All 55 core methods. (~965 tok)
 - `sidecar-rpc.test.ts` — "Answered" = a real handler ran, not unknown-method / not-ready. (~2561 tok)
+- `trust-gate.test.ts` — Approve every pending file for the given project root, then reload it. (~3204 tok)
 
 ## sidecar/test/fixtures/
 

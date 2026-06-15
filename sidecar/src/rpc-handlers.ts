@@ -42,6 +42,7 @@ import { parseRule } from '../vendor/core/rule-parser';
 import { getRule, createRuleFromMarkdown } from '../vendor/core/rule-engine';
 import { getPersonalRulesDir, getProjectRulesDir } from '../vendor/core/rule-loader';
 import { approve as approveTrust, getDefaultTrustStore } from '../vendor/core/rule-trust';
+import { ruleScope, currentPending, approvePending } from './rule-scope';
 import type { Analyzer } from '../vendor/core/analyzer';
 import type { ParseResult } from '../vendor/core/parser';
 
@@ -56,6 +57,12 @@ export interface HandlerContext {
    * no project is attached (e.g. the Part 2 stdio test harness).
    */
   projectRoot?: string;
+  /**
+   * Whether the owning IDE window is in safe-mode (project rule layer disabled).
+   * Stamped onto the request envelope by the Kotlin bridge; `undefined`/false
+   * means the project layer is loaded normally.
+   */
+  safeMode?: boolean;
 }
 
 export type SidecarHandler = (ctx: HandlerContext) => unknown | Promise<unknown>;
@@ -186,10 +193,33 @@ const getWorkspaceDeps: SidecarHandler = (ctx) => {
 
 /* ---- Resolution ---- */
 
+/* ---- Trust gate (per-request project rule scoping) ---- */
+//
+// These three run INSIDE the dispatch-level `ruleScope.run`, so they call the
+// free functions / `ruleScope.reloadCurrent` directly. They must NEVER call
+// `ruleScope.run` — that would deadlock on the same promise-chain mutex.
+
+const getLocalRulesPending: SidecarHandler = () => ({ pending: currentPending() });
+
+const approveLocalRules: SidecarHandler = async (ctx) => {
+  const filePaths = Array.isArray(ctx.params?.filePaths) ? ctx.params.filePaths.filter(isString) : [];
+  await approvePending(filePaths);
+  ruleScope.reloadCurrent(ctx.projectRoot, ctx.safeMode ?? false);
+  return { ok: true, pending: currentPending() };
+};
+
+const reloadLocalRules: SidecarHandler = (ctx) => {
+  ruleScope.reloadCurrent(ctx.projectRoot, ctx.safeMode ?? false);
+  return { pending: currentPending() };
+};
+
 const OVERRIDES: Record<string, SidecarHandler> = {
   saveRule,
   getWorkspaceDeps,
   reviewLocalRules: () => ({ ok: false, error: 'reviewLocalRules is handled by the IDE host' }),
+  getLocalRulesPending,
+  approveLocalRules,
+  reloadLocalRules,
 };
 
 /**

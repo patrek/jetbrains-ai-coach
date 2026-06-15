@@ -118,7 +118,7 @@ export class SidecarHarness {
   }
 
   /** Send a request and resolve with its `data` payload (rejects if the sidecar dies). */
-  request(method: string, params?: Record<string, unknown>, projectRoot?: string): Promise<unknown> {
+  request(method: string, params?: Record<string, unknown>, projectRoot?: string, safeMode?: boolean): Promise<unknown> {
     const id = `r${this.seq++}`;
     if (this.exited) return Promise.reject(new Error(`sidecar already exited:\n${this.stderr.trim()}`));
     return new Promise<unknown>((resolve, reject) => {
@@ -126,6 +126,7 @@ export class SidecarHarness {
       const envelope: Record<string, unknown> = { type: 'request', id, method };
       if (params) envelope.params = params;
       if (projectRoot) envelope.projectRoot = projectRoot;
+      if (safeMode !== undefined) envelope.safeMode = safeMode;
       this.child.stdin!.write(`${JSON.stringify(envelope)}\n`);
     });
   }

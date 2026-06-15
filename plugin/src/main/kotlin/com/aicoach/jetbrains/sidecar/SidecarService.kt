@@ -1,5 +1,7 @@
 package com.aicoach.jetbrains.sidecar
 
+import com.aicoach.jetbrains.trust.TrustStoreService
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.Disposable
@@ -45,6 +47,12 @@ class SidecarService : Disposable {
             Cancellable { future.cancel(false) }
         },
         clock = System::currentTimeMillis,
+        // Rule-approval authority lives on the Kotlin host (decision D5).
+        trustStore = object : TrustStore {
+            override fun snapshot(): JsonObject = TrustStoreService.getInstance().snapshot()
+            override fun put(key: String, value: JsonElement) =
+                TrustStoreService.getInstance().put(key, value)
+        },
     )
 
     /**
@@ -72,7 +80,18 @@ class SidecarService : Disposable {
         method: String,
         params: JsonObject?,
         projectRoot: String?,
-    ) = supervisor.forward(client, originalId, method, params, projectRoot)
+        safeMode: Boolean,
+    ) = supervisor.forward(client, originalId, method, params, projectRoot, safeMode)
+
+    /** Issue a host-originated sidecar request (e.g. the trust dialog fetching
+     *  the pending list); [onResult] receives the response `data`. */
+    fun hostCall(
+        method: String,
+        params: JsonObject?,
+        projectRoot: String?,
+        safeMode: Boolean,
+        onResult: (JsonElement) -> Unit,
+    ) = supervisor.hostCall(method, params, projectRoot, safeMode, onResult)
 
     /** User-initiated "Restart sidecar": clears the backoff budget. */
     fun requestRestart() = supervisor.requestRestart()
