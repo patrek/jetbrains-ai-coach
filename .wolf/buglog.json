@@ -337,6 +337,27 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-06-15T10:50:00.000Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-06-15T11:30:00.000Z",
+      "error_message": "CI: :plugin:buildPlugin -> buildSidecar failed: ERR_MODULE_NOT_FOUND Cannot find package 'esbuild' imported from sidecar/esbuild.mjs",
+      "file": ".github/workflows/ci.yml",
+      "root_cause": "The Gradle 'plugin' job runs buildPlugin which triggers buildSidecar (npm run build -> esbuild). But the job set up only JDK+Gradle: no Node, no synced sidecar/vendor tree, and no sidecar node_modules. esbuild (a devDependency) was absent, and vendor/ (gitignored, sync-populated) was missing too.",
+      "fix": "Added to the plugin job before buildPlugin: Set up Node 20, `node tools/sync-upstream.mjs --skip-tests` (populate sidecar/vendor), and `npm ci` in sidecar (install esbuild + deps). Mirrors the sidecar job's setup. buildPlugin verified green locally.",
+      "tags": [
+        "ci",
+        "github-actions",
+        "buildSidecar",
+        "esbuild",
+        "vendor",
+        "node_modules"
+      ],
+      "related_bugs": [
+        "bug-019"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T11:30:00.000Z"
     }
   ]
 }

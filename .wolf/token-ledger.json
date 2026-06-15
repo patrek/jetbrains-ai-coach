@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-06-12T20:36:53.801Z",
   "lifetime": {
-    "total_tokens_estimated": 755420,
-    "total_reads": 187,
-    "total_writes": 142,
+    "total_tokens_estimated": 767698,
+    "total_reads": 192,
+    "total_writes": 146,
     "total_sessions": 4,
-    "anatomy_hits": 187,
-    "anatomy_misses": 0,
+    "anatomy_hits": 191,
+    "anatomy_misses": 1,
     "repeated_reads_blocked": 77,
-    "estimated_savings_vs_bare_cli": 609762
+    "estimated_savings_vs_bare_cli": 610562
   },
   "sessions": [
     {
@@ -1995,6 +1995,107 @@
         "writes_count": 22,
         "repeated_reads_blocked": 10,
         "anatomy_lookups": 26
+      }
+    },
+    {
+      "id": "session-2026-06-15-1119",
+      "started": "2026-06-15T15:19:56.720Z",
+      "ended": "2026-06-15T15:22:28.038Z",
+      "reads": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 3240,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 555,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 3240,
+        "output_tokens_estimated": 555,
+        "reads_count": 1,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-06-15-1119",
+      "started": "2026-06-15T15:19:56.720Z",
+      "ended": "2026-06-15T15:29:42.392Z",
+      "reads": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 3240,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 555,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 3240,
+        "output_tokens_estimated": 555,
+        "reads_count": 1,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-06-15-1119",
+      "started": "2026-06-15T15:19:56.720Z",
+      "ended": "2026-06-15T15:35:36.146Z",
+      "reads": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 3240,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/.github/workflows/ci.yml",
+          "tokens_estimated": 678,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/b64q7jbu2.output",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+          "tokens_estimated": 555,
+          "action": "edit"
+        },
+        {
+          "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/.github/workflows/ci.yml",
+          "tokens_estimated": 215,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 3918,
+        "output_tokens_estimated": 770,
+        "reads_count": 3,
+        "writes_count": 2,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 2
       }
     }
   ],

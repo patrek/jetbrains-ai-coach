@@ -107,3 +107,7 @@
 
 ## Session summary (2026-06-15, part-3 render + image + runtime fixes)
 Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated and pushed (8 commits). Root causes: (1) late-progress race overwriting dashboard → _dataIsReady guard; (2) stale sidecar runtime extraction (jar:// sandbox defeated the file:// dev heuristic) → SHA-256 fingerprint re-extraction — this had been silently stranding ALL sidecar changes; (3) Coding Moments empty → Claude CLI image extractor + sourceFilePath + CACHE_VERSION bump. Added first-paint loading placeholder and gated :plugin:test in CI. Skill Finder llm-unavailable/discoverCatalog confirmed as ADR 0006/0009 deferrals (part 6). Vendor changes carried as patches 0004/0005 (ADR 0003); full sync + 1158 vendored tests + plugin lifecycle tests green. Stopping point for the PR per user.
+| 11:22 | Session end: 1 writes across 1 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md) | 1 reads | ~3795 tok |
+| 11:29 | Session end: 1 writes across 1 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md) | 1 reads | ~3795 tok |
+| 11:30 | Edited .github/workflows/ci.yml | expanded (+14 lines) | ~215 |
+| 11:35 | Session end: 2 writes across 2 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md, ci.yml) | 3 reads | ~4688 tok |

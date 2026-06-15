@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:21:40.650Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:30:53.755Z
 > Files: 307 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -36,7 +36,7 @@
 
 ## .github/workflows/
 
-- `ci.yml` — CI: CI (~678 tok)
+- `ci.yml` — CI: CI (~812 tok)
 
 ## .gradle/
 
