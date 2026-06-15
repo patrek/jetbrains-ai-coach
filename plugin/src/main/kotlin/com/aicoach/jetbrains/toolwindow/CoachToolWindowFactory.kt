@@ -1,9 +1,10 @@
 package com.aicoach.jetbrains.toolwindow
 
 import com.aicoach.jetbrains.jcef.AssetSchemeHandler
-import com.aicoach.jetbrains.jcef.ThemeColors
 import com.aicoach.jetbrains.jcef.WebviewBridge
 import com.aicoach.jetbrains.sidecar.NodeDetector
+import com.aicoach.jetbrains.theme.ThemeCssProvider
+import com.aicoach.jetbrains.theme.WebviewThemeSync
 import com.aicoach.jetbrains.sidecar.SidecarService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -91,10 +92,11 @@ internal class CoachDashboard(private val project: Project) : Disposable {
         val url = AssetSchemeHandler.register(
             domain,
             stateJsonProvider = { WebviewBridge.currentState(project) },
-            themeProvider = { themeColors() },
+            themeScriptProvider = { ThemeCssProvider.forCurrentTheme().setPropertyScript() },
         )
         val bridge = WebviewBridge(project, browser, service)
         Disposer.register(this, bridge)
+        WebviewThemeSync(browser, this)
 
         service.ensureStarted(nodePath)
         browser.loadURL(url)
@@ -161,10 +163,7 @@ internal class CoachDashboard(private val project: Project) : Disposable {
 
     // ---- helpers ---------------------------------------------------------
 
-    private fun themeColors(): ThemeColors = ThemeColors(panelBackground().toHex(), panelForeground().toHex())
-
     private fun panelBackground(): Color = UIUtil.getPanelBackground() ?: JBColor.background()
-    private fun panelForeground(): Color = UIUtil.getLabelForeground() ?: JBColor.foreground()
 
     private fun showCenter(component: JComponent) {
         if (disposed) return
@@ -186,8 +185,6 @@ internal class CoachDashboard(private val project: Project) : Disposable {
         val DOMAIN_SEQ = AtomicInteger(0)
     }
 }
-
-private fun Color.toHex(): String = "#%02x%02x%02x".format(red, green, blue)
 
 private fun String.htmlEscapeWithBreaks(): String =
     replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br/>")

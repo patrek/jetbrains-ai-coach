@@ -16,10 +16,6 @@ import org.cef.network.CefResponse
 import java.net.URI
 import java.nio.charset.StandardCharsets
 
-/** Editor background/foreground for the minimal anti-flash theme (part 3). The
- *  full 21-variable mapping is part 4. */
-data class ThemeColors(val background: String, val foreground: String)
-
 /**
  * Serves the webview bundle to JCEF from the plugin JAR under a real origin.
  *
@@ -32,7 +28,8 @@ data class ThemeColors(val background: String, val foreground: String)
  *     `__INITIAL_STATE__` is that window's state, not a shared one.
  *
  * `index.html` carries the CSP; `bootstrap.js` is rewritten per request to
- * inline the persisted UI state and the anti-flash theme.
+ * inline the persisted UI state and the theme-injection script (the 23-variable
+ * mapping painted before first frame).
  */
 object AssetSchemeHandler {
 
@@ -43,19 +40,20 @@ object AssetSchemeHandler {
      * Register a per-window asset factory and return the URL to load. The
      * [stateJsonProvider] is read synchronously on each `bootstrap.js` request
      * (JCEF has no synchronous JS->host call, so state must be inlined at serve
-     * time); [themeProvider] supplies the anti-flash colors.
+     * time); [themeScriptProvider] supplies the theme-injection script that
+     * paints the first frame in the IDE theme (the 23-variable mapping).
      */
-    fun register(domain: String, stateJsonProvider: () -> String, themeProvider: () -> ThemeColors): String {
+    fun register(domain: String, stateJsonProvider: () -> String, themeScriptProvider: () -> String): String {
         JBCefApp.getInstance() // ensure CEF is initialized before registering
         val registered = CefApp.getInstance()
-            .registerSchemeHandlerFactory(SCHEME, domain, Factory(stateJsonProvider, themeProvider))
+            .registerSchemeHandlerFactory(SCHEME, domain, Factory(stateJsonProvider, themeScriptProvider))
         if (!registered) log.warn("Failed to register asset scheme handler for $SCHEME://$domain")
         return "$SCHEME://$domain/index.html"
     }
 
     private class Factory(
         private val stateJsonProvider: () -> String,
-        private val themeProvider: () -> ThemeColors,
+        private val themeScriptProvider: () -> String,
     ) : CefSchemeHandlerFactory {
         override fun create(
             browser: CefBrowser?,
@@ -77,7 +75,7 @@ object AssetSchemeHandler {
         }
 
         private fun bootstrap(): CefResourceHandler {
-            val prefix = buildPrefix(stateJsonProvider(), themeProvider())
+            val prefix = buildPrefix(stateJsonProvider(), themeScriptProvider())
             val core = readResource("bootstrap.js") ?: return NotFoundHandler
             val bytes = (prefix.toByteArray(StandardCharsets.UTF_8) + core)
             return ByteArrayResourceHandler(bytes, MIME_JS)
@@ -89,15 +87,15 @@ object AssetSchemeHandler {
         }
     }
 
-    /** The inlined preamble prepended to `bootstrap.js` at serve time. */
-    private fun buildPrefix(stateJson: String, theme: ThemeColors): String {
+    /** The inlined preamble prepended to `bootstrap.js` at serve time: the
+     *  persisted UI state, then the theme-injection script. bootstrap.js loads in
+     *  `<head>` before app.js, so the `:root` variables are set before first
+     *  paint — no white flash. */
+    internal fun buildPrefix(stateJson: String, themeScript: String): String {
         val state = stateJson.ifBlank { "{}" }
         return buildString {
             append("window.__INITIAL_STATE__ = ").append(state).append(";\n")
-            append("(function(){var s=document.documentElement.style;")
-            append("s.setProperty('--vscode-editor-background','").append(theme.background).append("');")
-            append("s.setProperty('--vscode-editor-foreground','").append(theme.foreground).append("');")
-            append("})();\n")
+            append(themeScript).append("\n")
         }
     }
 

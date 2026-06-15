@@ -39,7 +39,7 @@
       "error_message": "Significant refactor of ",
       "file": "sidecar/test/harness.ts",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3\u21926 lines (2 removed)",
+      "fix": "Rewrote 3→6 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -71,7 +71,7 @@
       "error_message": "Significant refactor of ",
       "file": "sidecar/esbuild.mjs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 14\u219222 lines (2 removed)",
+      "fix": "Rewrote 14→22 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -86,7 +86,7 @@
       "timestamp": "2026-06-12T20:48:00.632Z",
       "error_message": "Missing error handling in unknown",
       "file": "sidecar/esbuild.mjs",
-      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -103,7 +103,7 @@
       "error_message": "Significant refactor of ",
       "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7\u21924 lines (2 removed)",
+      "fix": "Rewrote 7→4 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -119,7 +119,7 @@
       "error_message": "Wrong reference: trust should be the",
       "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
       "root_cause": "Used \"trust\" instead of \"the\"",
-      "fix": "Changed trust \u2192 the",
+      "fix": "Changed trust → the",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -166,7 +166,7 @@
       "timestamp": "2026-06-15T08:52:00.000Z",
       "error_message": "IllegalStateException: Cannot locate the plugin code source to extract the sidecar bundle",
       "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
-      "root_cause": "protectionDomain.codeSource is null in Gradle runIde dev sandbox \u2014 IntelliJ plugin classloader does not expose a code source",
+      "root_cause": "protectionDomain.codeSource is null in Gradle runIde dev sandbox — IntelliJ plugin classloader does not expose a code source",
       "fix": "Locate bundle via getResource(\"/sidecar/main.js\") URL; handle \"jar:\" (production) and \"file:\" (dev sandbox) protocols",
       "tags": [
         "runtime-extraction",
@@ -183,7 +183,7 @@
       "timestamp": "2026-06-15T13:55:11.381Z",
       "error_message": "Missing error handling in unknown",
       "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
-      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -247,7 +247,7 @@
       "timestamp": "2026-06-15T14:22:18.145Z",
       "error_message": "Missing error handling in countClaudeImages",
       "file": "sidecar/vendor/core/parser-claude.ts",
-      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
       "fix": "Added try/catch block",
       "tags": [
         "auto-detected",
@@ -277,7 +277,7 @@
     {
       "id": "bug-018",
       "timestamp": "2026-06-15T14:35:00.000Z",
-      "error_message": "Coding Moments page: 'No Loadable Images Found' \u2014 7 image moments detected but getSessionImages returned [] for every CLI/Claude session",
+      "error_message": "Coding Moments page: 'No Loadable Images Found' — 7 image moments detected but getSessionImages returned [] for every CLI/Claude session",
       "file": "sidecar/vendor/webview/panel-rpc.ts",
       "root_cause": "Two layered gaps: (1) extractSessionImages only parses the VS Code Copilot file format (kind:0/2 state log); Claude .jsonl stores images as message.content[] blocks {type:'image', source:{type:'base64',media_type,data}} keyed by the line uuid. (2) Deeper: external-harness sessions (Claude/Codex/OpenCode) are collected via parser-harnesses HarnessCollectionContext which only carries {workspaces, sessions} and never registers a SessionSource, so sessionSourceIndex.get(sessionId) misses for all Claude sessions and getSessionImages hit `if(!source) return {images:[]}`.",
       "fix": "Added extractCliSessionImages(filePath, requestId) in parser-claude.ts (matches line by uuid, converts base64 image-block sources to data: URIs, caps at 4). Stamped session.sourceFilePath in parseClaudeSessionFile (sessionId is NOT reliably the filename). getSessionImages now: dispatches sessionSourceIndex entries on kind, then falls back to session.sourceFilePath for harness==='Claude'. Bumped CACHE_VERSION 9->10 so persisted sessions re-parse with the new field. CSP already allows img-src data:.",
@@ -319,7 +319,7 @@
       "timestamp": "2026-06-15T10:50:00.000Z",
       "error_message": "Sidecar-side changes (image fix, CACHE_VERSION bump) never reached the running IDE despite rebuilds; runtime/0.1.0/main.js stayed stale",
       "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
-      "root_cause": "ensureExtracted (commit 3be5121) detected 'dev sandbox' via getResource('/sidecar/main.js').protocol=='file' and only then skipped the isComplete() short-circuit. But the IntelliJ runIde sandbox packages the plugin as plugin-0.1.0.jar, so the protocol is 'jar', inDevSandbox=false, isComplete(stale files)=true -> the first-ever extraction was reused forever. Version string (0.1.0) never changes between dev builds. Webview app.js was unaffected (served from JAR by AssetSchemeHandler, not extracted), which masked the bug \u2014 only sidecar main.js changes silently failed to load.",
+      "root_cause": "ensureExtracted (commit 3be5121) detected 'dev sandbox' via getResource('/sidecar/main.js').protocol=='file' and only then skipped the isComplete() short-circuit. But the IntelliJ runIde sandbox packages the plugin as plugin-0.1.0.jar, so the protocol is 'jar', inDevSandbox=false, isComplete(stale files)=true -> the first-ever extraction was reused forever. Version string (0.1.0) never changes between dev builds. Webview app.js was unaffected (served from JAR by AssetSchemeHandler, not extracted), which masked the bug — only sidecar main.js changes silently failed to load.",
       "fix": "Replaced the file://-vs-jar:// heuristic with a content fingerprint: hash the bundled /sidecar/main.js (SHA-256), store it as runtime/<ver>/.bundle-hash, and re-extract whenever the extraction is incomplete or the stored hash != current. Correct for dev (rebuilt bundle) and prod (plugin update) regardless of version-dir name. Verified: fresh runIde re-extracted main.js with the fix and cache re-parsed to version 10.",
       "tags": [
         "runtime-extraction",
@@ -381,7 +381,7 @@
       "error_message": "Significant refactor of ",
       "file": "../../../../../tmp/p2gen/sidecar/vendor/core/parser-main.test.ts",
       "root_cause": "3 lines replaced/restructured",
-      "fix": "Rewrote 6\u219210 lines (3 removed)",
+      "fix": "Rewrote 6→10 lines (3 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -396,8 +396,8 @@
       "timestamp": "2026-06-15T12:10:00.000Z",
       "error_message": "Harness filter does not show GitHub Copilot CLI despite ~/.copilot/session-state having sessions on this device",
       "file": "tools/patches/0002-findlogsdirs-drop-vscode-xcode.patch",
-      "root_cause": "GitHub Copilot CLI dirs (~/.copilot/session-state, history-session-state) are discovered inside findVsCodeDirs() and parsed via the VS Code CLI-events path (harness 'GitHub Copilot CLI'). Patch 0002 dropped ALL of findLogsDirs() to [], removing the Copilot CLI dirs too \u2014 even though D8 / the patch comment say Copilot CLI is a collected harness. collectExternalHarnesses only covers Claude/Codex/OpenCode, so Copilot CLI fell through the cracks and never parsed.",
-      "fix": "Regenerated patch 0002 so findLogsDirs() returns findVsCodeDirs().filter(d => d.includes('.copilot')) \u2014 keeps Copilot CLI, still drops VS Code workspaceStorage + Xcode (D8). Updated the parser-main.test.ts assertion accordingly. Verified: getHarnesses now returns ['Claude','GitHub Copilot CLI','OpenCode']; 1158 vendored tests green. VS Code Copilot Chat (workspaceStorage) remains intentionally deferred per D8.",
+      "root_cause": "GitHub Copilot CLI dirs (~/.copilot/session-state, history-session-state) are discovered inside findVsCodeDirs() and parsed via the VS Code CLI-events path (harness 'GitHub Copilot CLI'). Patch 0002 dropped ALL of findLogsDirs() to [], removing the Copilot CLI dirs too — even though D8 / the patch comment say Copilot CLI is a collected harness. collectExternalHarnesses only covers Claude/Codex/OpenCode, so Copilot CLI fell through the cracks and never parsed.",
+      "fix": "Regenerated patch 0002 so findLogsDirs() returns findVsCodeDirs().filter(d => d.includes('.copilot')) — keeps Copilot CLI, still drops VS Code workspaceStorage + Xcode (D8). Updated the parser-main.test.ts assertion accordingly. Verified: getHarnesses now returns ['Claude','GitHub Copilot CLI','OpenCode']; 1158 vendored tests green. VS Code Copilot Chat (workspaceStorage) remains intentionally deferred per D8.",
       "tags": [
         "copilot",
         "harness",
@@ -411,6 +411,138 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-06-15T12:10:00.000Z"
+    },
+    {
+      "id": "bug-025",
+      "timestamp": "2026-06-15T16:36:48.144Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandler.kt",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 8→4 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T16:36:48.144Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-06-15T16:37:48.921Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/CoachToolWindowFactory.kt",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 8→5 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T16:37:48.921Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-06-15T17:49:49.244Z",
+      "error_message": "Wrong reference: private should be internal",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/AssetSchemeHandler.kt",
+      "root_cause": "Used \"private\" instead of \"internal\"",
+      "fix": "Changed private → internal",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T17:49:49.244Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-06-15T18:24:59.603Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T18:24:59.603Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-06-15T18:28:10.052Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "plugin/src/main/resources/webview/bootstrap.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T18:28:10.052Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-06-15T18:30:00.000Z",
+      "error_message": "Dashboard stuck on 'Building Activity Index' spinner after a theme change (open/close works, theme switch hangs)",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/theme/WebviewThemeSync.kt",
+      "root_cause": "WebviewThemeSync called browser.cefBrowser.reload() on theme change. The webview waits for the sidecar's one-shot 'dataReady' push before fetching/rendering. dataReady is sent once per sidecar connection (on first parse). A soft reload restarts app.js on the SAME bridge/connection, so the sidecar never re-emits dataReady — the reloaded page waits forever. (A close/reopen makes a NEW connection, which re-handshakes and re-emits dataReady, which is why open/close worked.)",
+      "fix": "Removed the soft reload (and the load-gate/second load handler) from WebviewThemeSync. Theme changes now do live :root CSS-variable injection only (executeJavaScript setProperty) — the whole CSS UI recolors instantly with no reload, so nothing hangs. Chart.js (colors captured at mount) fully recolors when the tool window is reopened.",
+      "tags": [
+        "jcef",
+        "theme",
+        "webview",
+        "reload",
+        "dataReady",
+        "part-4",
+        "regression"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T18:30:00.000Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-06-15T18:33:09.073Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 24→12 lines (9 removed) | Also: log.warn(\"DIAG queue id=${pending.id} ${pending.me; log.warn(\"DIAG forward id=${pending.id} ${pending.",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-15T18:33:32.408Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-06-15T18:34:11.329Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/resources/webview/bootstrap.js",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 15→4 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T18:34:11.329Z"
     }
   ]
 }

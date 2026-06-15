@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T16:01:51.692Z
-> Files: 309 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T18:34:11.316Z
+> Files: 318 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/p2gen/sidecar/vendor/core/
 
@@ -104,6 +104,14 @@
 - `2026-06-11-feat-jetbrains-ide-plugin-port-part-7-plan.md` — feat(jetbrains): hardening, packaging, and Marketplace submission - Standard (~955 tok)
 - `2026-06-11-feat-jetbrains-ide-plugin-port-plan.md` — feat: port AI Engineer Coach to JetBrains IDEs - Extensive (~11413 tok)
 
+## docs/reviews/
+
+- `architecture-review.md` — Architecture Review — Part 4 (theme integration + state persistence) (~3157 tok)
+- `code-simplicity-review.md` — Code Simplicity Review — Part 4 (Theme Integration & Webview State) (~3543 tok)
+- `pr-readiness-review.md` — PR Readiness Review: Part-4 JetBrains Plugin — Theme Integration & State Persistence (~2638 tok)
+- `test-quality-review.md` — Test Quality Review — Part 4: Theme Integration & State Persistence (~2780 tok)
+- `vgv-review.md` — VGV Code Review — Part 4: Theme Integration & Webview State Persistence (~2448 tok)
+
 ## gradle/
 
 - `libs.versions.toml` (~193 tok)
@@ -119,7 +127,7 @@
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/
 
-- `AssetSchemeHandler.kt` — Editor background/foreground for the minimal anti-flash theme (part 3). The (~1747 tok)
+- `AssetSchemeHandler.kt` — Serves the webview bundle to JCEF from the plugin JAR under a real origin. (~1721 tok)
 - `WebviewBridge.kt` — The per-window JS<->host relay: one bridge per open dashboard tool window. (~2683 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/settings/
@@ -135,9 +143,14 @@
 - `SidecarService.kt` — The one application-level sidecar shared by every IDE window (decision D4). (~1058 tok)
 - `SidecarSupervisor.kt` — The app-level sidecar's protocol policy, free of any IntelliJ or process (~2905 tok)
 
+## plugin/src/main/kotlin/com/aicoach/jetbrains/theme/
+
+- `ThemeCssProvider.kt` — Derives the 23 webview theme variables from the live IDE theme and serializes (~1554 tok)
+- `WebviewThemeSync.kt` — Keeps one open dashboard window's webview in sync with the live IDE theme. (~524 tok)
+
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/
 
-- `CoachToolWindowFactory.kt` — The dashboard tool window. Lazy and `DumbAware` so it opens during indexing. (~2083 tok)
+- `CoachToolWindowFactory.kt` — The dashboard tool window. Lazy and `DumbAware` so it opens during indexing. (~2045 tok)
 
 ## plugin/src/main/resources/META-INF/
 
@@ -152,10 +165,18 @@
 - `bootstrap.js` — Declares postToHost (~622 tok)
 - `index.html` — AI Coach (~1925 tok)
 
+## plugin/src/test/kotlin/com/aicoach/jetbrains/jcef/
+
+- `AssetSchemeHandlerTest.kt` — The pure, platform-free part of the scheme handler: the preamble prepended to (~271 tok)
+
 ## plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/
 
 - `NodeDetectorTest.kt` — Cascade logic for [NodeDetector] with the version probe and filesystem checks (~1580 tok)
 - `SidecarSupervisorTest.kt` — Drives [SidecarSupervisor]'s protocol and lifecycle policy with fakes — no (~2958 tok)
+
+## plugin/src/test/kotlin/com/aicoach/jetbrains/theme/
+
+- `ThemeCssProviderTest.kt` — Serialization and mapping logic for [ThemeCssProvider] with the IDE theme (~1380 tok)
 
 ## sidecar/
 
