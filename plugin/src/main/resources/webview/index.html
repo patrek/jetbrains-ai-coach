@@ -9,12 +9,12 @@
   session logs, so this is a security boundary, not a formality.
 
   script-src 'self' restricts scripts to this origin (https://aicoach-*) — no
-  remote origins, no inline. Trusted Types are required for 'script' sinks; the
-  bundle creates the `coach-html` policy. If the bundled JCEF Chromium rejects
-  the policy (the timeboxed spike's failure case), the documented 1-line
-  fallback is to drop the final two directives below.
+  remote origins, no inline. Trusted Types were dropped (spike outcome): the
+  bundled JCEF Chromium silently blocks innerHTML sinks under
+  require-trusted-types-for 'script', preventing the dashboard from rendering
+  even though app.js executes. The loading overlay appeared but never dismissed.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; require-trusted-types-for 'script'; trusted-types coach-html default;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self';">
 <link href="styles.css" rel="stylesheet">
 <title>AI Coach</title>
 <style>
