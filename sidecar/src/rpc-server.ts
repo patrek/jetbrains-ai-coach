@@ -26,11 +26,17 @@ import { Analyzer } from '../vendor/core/analyzer';
 import { findLogsDirs, parseAllLogsViaWorker } from '../vendor/core/parser';
 import type { ParseResult, LoadProgress } from '../vendor/core/parser';
 import { errorResult, isString, isRecord } from '../vendor/webview/panel-shared';
-import { createHostTrustMemento, installTrustMemento } from './host-shims';
+import { createHostTrustMemento, installTrustMemento, loadTrustSeed, type HostChannel } from './host-shims';
 import { resolveHandler } from './rpc-handlers';
 
 /** Protocol version reported in the `hello` handshake. */
 export const SIDECAR_PROTOCOL_VERSION = '1.0.0';
+
+/** How long a host-bound request (e.g. `trust/get`) waits for its
+ *  `host-response` before degrading. A real IDE host answers the stubbed trust
+ *  router immediately; the bound is a safety net so a host that never replies
+ *  (or a standalone run with no host) can't wedge startup forever. */
+const HOST_REQUEST_TIMEOUT_MS = 10_000;
 
 /** Static capability flags the webview gates its UI on. The sidecar has no LLM
  *  or GitHub auth of its own — those live in the IDE host. */
@@ -65,6 +71,12 @@ export class RpcServer {
   private parseResult: ParseResult | null = null;
   private dataReady = false;
   private readonly pending: IncomingRequest[] = [];
+  /** In-flight host-bound requests, correlated by id on their `host-response`. */
+  private hostSeq = 0;
+  private readonly hostPending = new Map<
+    string,
+    { resolve: (data: unknown) => void; reject: (err: Error) => void; timer: ReturnType<typeof setTimeout> }
+  >();
 
   constructor(opts: RpcServerOptions = {}) {
     this.input = opts.input ?? process.stdin;
@@ -73,10 +85,6 @@ export class RpcServer {
 
   /** Start framing, emit the handshake, and kick off the data load. */
   async start(): Promise<void> {
-    // Trust state is mirrored in-process for part 2 (no IDE host attached). The
-    // channel-backed adapter in host-shims is wired by part 3's bridge.
-    installTrustMemento(createHostTrustMemento());
-
     const rl = readline.createInterface({ input: this.input, crlfDelay: Infinity });
     rl.on('line', (line) => this.onLine(line));
     // stdin close => the host is gone => exit so we never orphan.
@@ -85,11 +93,46 @@ export class RpcServer {
 
     this.send({ type: 'hello', version: SIDECAR_PROTOCOL_VERSION, capabilities: SIDECAR_CAPABILITIES });
 
+    // Trust authority lives in the IDE host (decision D5). Open the host channel,
+    // seed the in-memory mirror from the host once (`trust/get`), and route
+    // `update`s back through (`trust/update`). With no host attached the seed
+    // degrades to empty and the mirror runs locally — the channel requests time
+    // out instead of wedging startup.
+    const channel: HostChannel = { request: (method, params) => this.hostRequest(method, params) };
+    const seed = await loadTrustSeed(channel);
+    installTrustMemento(createHostTrustMemento({ channel, seed }));
+
     await this.loadData();
   }
 
   private send(message: Record<string, unknown>): void {
     this.writeLine(`${JSON.stringify(message)}\n`);
+  }
+
+  /** Issue a host-bound RPC over stdout and resolve on its correlated
+   *  `host-response`. Rejects (degrading the caller) if the host never replies. */
+  private hostRequest(method: string, params: unknown): Promise<unknown> {
+    const id = `h${this.hostSeq++}`;
+    return new Promise<unknown>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.hostPending.delete(id);
+        reject(new Error(`host request timed out: ${method}`));
+      }, HOST_REQUEST_TIMEOUT_MS);
+      // Never let a pending host reply keep the process alive past stdin close.
+      timer.unref?.();
+      this.hostPending.set(id, { resolve, reject, timer });
+      this.send({ type: 'host-request', id, method, params });
+    });
+  }
+
+  /** Resolve the pending host request a `host-response` line correlates to. */
+  private onHostResponse(msg: Record<string, unknown>): void {
+    if (!isString(msg.id)) return;
+    const entry = this.hostPending.get(msg.id);
+    if (!entry) return;
+    this.hostPending.delete(msg.id);
+    clearTimeout(entry.timer);
+    entry.resolve(msg.data);
   }
 
   private onLine(line: string): void {
@@ -101,7 +144,9 @@ export class RpcServer {
     } catch {
       return; // ignore non-JSON noise
     }
-    if (!isRecord(msg) || msg.type !== 'request' || !isString(msg.id) || !isString(msg.method)) return;
+    if (!isRecord(msg)) return;
+    if (msg.type === 'host-response') return this.onHostResponse(msg);
+    if (msg.type !== 'request' || !isString(msg.id) || !isString(msg.method)) return;
     if (msg.params !== undefined && !isRecord(msg.params)) return;
 
     const request: IncomingRequest = {
@@ -159,16 +204,21 @@ export class RpcServer {
       this.parseResult.workspaces,
     );
 
-    // Ready BEFORE warmUp so queued requests are served immediately.
+    // Mark internally ready and flush pre-load queued requests BEFORE warmUp
+    // so they are served during warm-up. The wire `dataReady` message goes to
+    // the webview only AFTER warmUp completes: warmUp emits progress pushes,
+    // and the webview's ensureLoadingUI() will re-render the loading screen if
+    // it is called after the dashboard has already cleared #load-progress-bar —
+    // sending dataReady before warmUp causes exactly that race.
     this.dataReady = true;
-    this.send({ type: 'dataReady', currentWorkspace: '' });
+    const queued = this.pending.splice(0, this.pending.length);
+    for (const request of queued) void this.dispatch(request);
 
     try {
       await this.analyzer.warmUp((phase, detail, pct) => this.onProgress({ phase, detail, pct }));
     } catch { /* warmUp is best-effort */ }
 
-    const queued = this.pending.splice(0, this.pending.length);
-    for (const request of queued) void this.dispatch(request);
+    this.send({ type: 'dataReady', currentWorkspace: '' });
   }
 
   private onProgress(p: Partial<LoadProgress> & { phase: number }): void {

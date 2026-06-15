@@ -1,0 +1,214 @@
+diff --git a/sidecar/vendor/core/cache.ts b/sidecar/vendor/core/cache.ts
+index 9b82dea..c1c1da6 100644
+--- a/sidecar/vendor/core/cache.ts
++++ b/sidecar/vendor/core/cache.ts
+@@ -93,7 +93,7 @@ const CACHE_DIR = process.env.AI_COACH_CACHE_DIR
+ const CACHE_FILE = path.join(CACHE_DIR, 'parsed.json');
+ const CACHE_META = path.join(CACHE_DIR, 'meta.json');
+ 
+-const CACHE_VERSION = 9;
++const CACHE_VERSION = 10;
+ 
+ interface CacheMetaPayload {
+   version: number;
+diff --git a/sidecar/vendor/core/parser-claude.test.ts b/sidecar/vendor/core/parser-claude.test.ts
+index fb92fca..a0fafa7 100644
+--- a/sidecar/vendor/core/parser-claude.test.ts
++++ b/sidecar/vendor/core/parser-claude.test.ts
+@@ -12,7 +12,7 @@ import * as os from 'os';
+ import * as path from 'path';
+ import { execSync } from 'child_process';
+ import { describe, it, expect } from 'vitest';
+-import { parseClaudeSessions } from './parser-claude';
++import { parseClaudeSessions, extractCliSessionImages } from './parser-claude';
+ 
+ /** os.tmpdir() on Windows often returns 8.3 short names (e.g. TAMASB~1)
+  *  that don't match readdirSync output. Resolve to the long form so
+@@ -498,4 +498,50 @@ describe('parseClaudeSessions', () => {
+     });
+     fs.rmSync(cwd, { recursive: true, force: true });
+   });
++
++  describe('extractCliSessionImages', () => {
++    const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
++
++    function writeSession(lines: object[]): string {
++      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-img-'));
++      const fp = path.join(dir, 'session.jsonl');
++      fs.writeFileSync(fp, lines.map(l => JSON.stringify(l)).join('\n'), 'utf-8');
++      return fp;
++    }
++
++    it('extracts base64 image blocks for the matching request uuid as data URIs', () => {
++      const fp = writeSession([
++        { type: 'user', uuid: 'req-1', message: { content: [
++          { type: 'text', text: 'look at this' },
++          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: PNG } },
++        ] } },
++        { type: 'assistant', uuid: 'req-2', message: { content: [{ type: 'text', text: 'ok' }] } },
++      ]);
++      expect(extractCliSessionImages(fp, 'req-1')).toEqual([`data:image/png;base64,${PNG}`]);
++    });
++
++    it('returns an empty array when the request has no image blocks', () => {
++      const fp = writeSession([
++        { type: 'assistant', uuid: 'req-2', message: { content: [{ type: 'text', text: 'ok' }] } },
++      ]);
++      expect(extractCliSessionImages(fp, 'req-2')).toEqual([]);
++    });
++
++    it('returns an empty array when the request uuid is not present', () => {
++      const fp = writeSession([
++        { type: 'user', uuid: 'req-1', message: { content: [
++          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: PNG } },
++        ] } },
++      ]);
++      expect(extractCliSessionImages(fp, 'missing')).toEqual([]);
++    });
++
++    it('caps extraction at 4 images per request', () => {
++      const img = { type: 'image', source: { type: 'base64', media_type: 'image/png', data: PNG } };
++      const fp = writeSession([
++        { type: 'user', uuid: 'req-1', message: { content: [img, img, img, img, img, img] } },
++      ]);
++      expect(extractCliSessionImages(fp, 'req-1')).toHaveLength(4);
++    });
++  });
+ });
+diff --git a/sidecar/vendor/core/parser-claude.ts b/sidecar/vendor/core/parser-claude.ts
+index 5e12059..060e6f4 100644
+--- a/sidecar/vendor/core/parser-claude.ts
++++ b/sidecar/vendor/core/parser-claude.ts
+@@ -27,6 +27,8 @@ interface ClaudeContentBlock {
+   text?: string;
+   name?: string;
+   input?: Record<string, unknown>;
++  /** Present on `type: 'image'` blocks: the inline screenshot bytes. */
++  source?: { type?: string; media_type?: string; data?: string };
+ }
+ 
+ interface ClaudeMessage {
+@@ -216,6 +218,51 @@ function countClaudeImages(line: ClaudeLine): number {
+     .filter(block => block.type === 'image').length;
+ }
+ 
++function imageBlockToDataUri(block: ClaudeContentBlock): string | null {
++  const source = block.source;
++  if (!source || source.type !== 'base64' || typeof source.data !== 'string' || !source.data) return null;
++  const mediaType = typeof source.media_type === 'string' && source.media_type ? source.media_type : 'image/png';
++  return `data:${mediaType};base64,${source.data}`;
++}
++
++/**
++ * Extract inline screenshots from a Claude CLI session file (`cli-events` source
++ * kind) for one request. Claude stores images as content blocks
++ * `{ type: 'image', source: { type: 'base64', media_type, data } }` and the
++ * request id is the line `uuid`. Returns base64 data URIs, capped at 4 per
++ * request to bound memory — mirroring the VS Code path's `extractSessionImages`.
++ *
++ * The VS Code extractor cannot read these: both harnesses use `.jsonl`, but the
++ * VS Code format is a `kind: 0/2` state log while Claude is one turn per line, so
++ * `getSessionImages` must dispatch on `SessionSource.kind`.
++ */
++export function extractCliSessionImages(filePath: string, requestId: string): string[] {
++  try {
++    assertTrustedPath(filePath);
++    const raw = readFileSafe(filePath);
++    if (raw === null) return [];
++    for (const line of raw.split('\n')) {
++      const trimmed = line.trim();
++      if (!trimmed || !trimmed.includes(requestId)) continue;
++      let entry: ClaudeLine;
++      try { entry = JSON.parse(trimmed) as ClaudeLine; } catch { continue; }
++      if (entry.uuid !== requestId) continue;
++      const images: string[] = [];
++      for (const block of toContentArray(entry.message?.content)) {
++        if (block.type !== 'image') continue;
++        const uri = imageBlockToDataUri(block);
++        if (uri) images.push(uri);
++        if (images.length >= 4) break;
++      }
++      return images;
++    }
++    return [];
++  } catch (e) {
++    warnCore('parser-claude', `Failed to extract images from ${filePath}: ${e instanceof Error ? e.message : String(e)}`);
++    return [];
++  }
++}
++
+ function applyClaudeToolBlock(
+   block: ClaudeContentBlock,
+   data: Pick<ClaudeAssistantData, 'toolsUsed' | 'editedFiles' | 'referencedFiles' | 'skillsUsed'>,
+@@ -665,7 +712,7 @@ function parseClaudeSessionFile(filePath: string, wsId: string, wsName: string):
+   if (requests.length === 0) return null;
+ 
+   const launcherKind = classifyLauncher(entrypoint);
+-  return createSession({
++  const session = createSession({
+     sessionId,
+     workspaceId: wsId,
+     workspaceName: wsName,
+@@ -679,4 +726,8 @@ function parseClaudeSessionFile(filePath: string, wsId: string, wsName: string):
+     launcherKind,
+     entrypoint,
+   });
++  // Record the on-disk file so getSessionImages can lazily extract inline
++  // screenshots — Claude sessions are not in sessionSourceIndex.
++  session.sourceFilePath = filePath;
++  return session;
+ }
+diff --git a/sidecar/vendor/core/types/session-types.ts b/sidecar/vendor/core/types/session-types.ts
+index e982e02..c36749b 100644
+--- a/sidecar/vendor/core/types/session-types.ts
++++ b/sidecar/vendor/core/types/session-types.ts
+@@ -153,6 +153,12 @@ export interface Session {
+   /** Resolved project root for CLI harnesses that record cwd separately from
+    *  launch location/source. Used by config-health workspace scans. */
+   workspaceRootPath?: string;
++  /** Absolute path to the harness session file on disk. Set for external CLI
++   *  harnesses (Claude) whose sessions are not registered in
++   *  `sessionSourceIndex`; lets `getSessionImages` lazily extract inline
++   *  screenshots from the original file. `undefined` for VS Code sessions
++   *  (those resolve through `sessionSourceIndex`). */
++  sourceFilePath?: string;
+   /** How the session was launched (Claude only, currently).
+    *    interactive  — user typed `claude` in a terminal or used Claude Desktop.
+    *    programmatic — spawned by another tool via the SDK (e.g. GitHub Copilot
+diff --git a/sidecar/vendor/webview/panel-rpc.ts b/sidecar/vendor/webview/panel-rpc.ts
+index 6f3e7e6..bd80621 100644
+--- a/sidecar/vendor/webview/panel-rpc.ts
++++ b/sidecar/vendor/webview/panel-rpc.ts
+@@ -9,6 +9,7 @@ import { Analyzer } from '../core/analyzer';
+ import { ParseResult } from '../core/parser';
+ import { loadSessionFromDisk } from '../core/cache';
+ import { extractSessionImages } from '../core/parser-vscode-files';
++import { extractCliSessionImages } from '../core/parser-claude';
+ import { DateFilter, RpcMethodName, BurndownConfig } from '../core/types';
+ import type { RpcMethodMap, RpcResult } from '../core/types/rpc-types';
+ import {
+@@ -748,8 +749,22 @@ const rpcHandlers: TypedRpcHandlers = {
+     const requestId = isString(params?.requestId) ? params.requestId : '';
+     if (!sessionId || !requestId) return { images: [] };
+     const source = p.sessionSourceIndex.get(sessionId);
+-    if (!source) return { images: [] };
+-    return { images: extractSessionImages(source.filePath, requestId) };
++    if (source) {
++      // Both VS Code harness kinds use .jsonl but with different schemas, so
++      // dispatch on the source kind: vscode is a kind:0/2 state log, the CLI
++      // events file is one event per line.
++      const images = source.kind === 'cli-events'
++        ? extractCliSessionImages(source.filePath, requestId)
++        : extractSessionImages(source.filePath, requestId);
++      return { images };
++    }
++    // External CLI harnesses (Claude) are not registered in sessionSourceIndex;
++    // fall back to the file path recorded on the session itself.
++    const session = p.sessions.find(s => s.sessionId === sessionId);
++    if (session?.sourceFilePath && session.harness === 'Claude') {
++      return { images: extractCliSessionImages(session.sourceFilePath, requestId) };
++    }
++    return { images: [] };
+   },
+ 
+   /* ---- Rule Editor methods ---- */

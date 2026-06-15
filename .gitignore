@@ -22,3 +22,4 @@ tools/.upstream-cache/
 
 # OS / editor noise
 .DS_Store
+.agentbridge/

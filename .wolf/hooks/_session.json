@@ -1,0 +1,78 @@
+{
+  "session_id": "session-2026-06-15-1119",
+  "started": "2026-06-15T15:19:56.720Z",
+  "files_read": {
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md": {
+      "count": 1,
+      "tokens": 3240,
+      "first_read": "2026-06-15T15:21:14.851Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/.github/workflows/ci.yml": {
+      "count": 1,
+      "tokens": 678,
+      "first_read": "2026-06-15T15:30:25.858Z"
+    },
+    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/b64q7jbu2.output": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-06-15T15:35:21.481Z"
+    },
+    "/tmp/claude-1000/-home-pturcotte-Src-patrick-ai-coach-jetbrains/9812ee82-4648-4548-8c38-4ed640a7a75b/tasks/bqc5m5dwe.output": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-15T15:49:23.413Z"
+    },
+    "/tmp/pristine0002/sidecar/vendor/core/parser.ts": {
+      "count": 1,
+      "tokens": 8293,
+      "first_read": "2026-06-15T15:53:41.868Z"
+    },
+    "/tmp/p2gen/sidecar/vendor/core/parser.ts": {
+      "count": 1,
+      "tokens": 8293,
+      "first_read": "2026-06-15T15:58:17.432Z"
+    },
+    "/tmp/p2gen/sidecar/vendor/core/parser-main.test.ts": {
+      "count": 1,
+      "tokens": 4157,
+      "first_read": "2026-06-15T16:00:00.689Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md",
+      "action": "edit",
+      "tokens": 555,
+      "at": "2026-06-15T15:21:40.689Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/.github/workflows/ci.yml",
+      "action": "edit",
+      "tokens": 215,
+      "at": "2026-06-15T15:30:53.773Z"
+    },
+    {
+      "file": "/tmp/p2gen/sidecar/vendor/core/parser.ts",
+      "action": "edit",
+      "tokens": 157,
+      "at": "2026-06-15T15:59:52.698Z"
+    },
+    {
+      "file": "/tmp/p2gen/sidecar/vendor/core/parser-main.test.ts",
+      "action": "edit",
+      "tokens": 190,
+      "at": "2026-06-15T16:01:51.709Z"
+    }
+  ],
+  "edit_counts": {
+    "docs/plan/2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md": 1,
+    ".github/workflows/ci.yml": 1,
+    "../../../../../tmp/p2gen/sidecar/vendor/core/parser.ts": 1,
+    "../../../../../tmp/p2gen/sidecar/vendor/core/parser-main.test.ts": 1
+  },
+  "anatomy_hits": 5,
+  "anatomy_misses": 2,
+  "repeated_reads_warned": 1,
+  "cerebrum_warnings": 0,
+  "stop_count": 5
+}

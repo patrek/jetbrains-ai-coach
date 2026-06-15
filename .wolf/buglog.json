@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-06-12T20:41:03.541Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/src/rpc-server.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:03.541Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-06-12T20:41:09.072Z",
+      "error_message": "Missing guard clause",
+      "file": "sidecar/src/rpc-server.ts",
+      "root_cause": "No early return/throw for edge case: !isRecord(msg",
+      "fix": "Added guard clause: if (!isRecord(msg)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:09.072Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-06-12T20:41:14.358Z",
+      "error_message": "Significant refactor of ",
+      "file": "sidecar/test/harness.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3\u21926 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:14.358Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-06-12T20:41:20.550Z",
+      "error_message": "Missing guard clause",
+      "file": "sidecar/test/harness.ts",
+      "root_cause": "No early return/throw for edge case: this.exited",
+      "fix": "Added guard clause: if (this.exited)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:41:20.550Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-06-12T20:47:30.595Z",
+      "error_message": "Significant refactor of ",
+      "file": "sidecar/esbuild.mjs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 14\u219222 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:47:30.595Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-06-12T20:48:00.632Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "sidecar/esbuild.mjs",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T20:48:00.632Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-06-12T21:34:41.364Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7\u21924 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T21:34:41.364Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-06-12T21:36:00.505Z",
+      "error_message": "Wrong reference: trust should be the",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarSupervisor.kt",
+      "root_cause": "Used \"trust\" instead of \"the\"",
+      "fix": "Changed trust \u2192 the",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-12T21:36:00.505Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-06-12T21:36:27.269Z",
+      "error_message": "Incorrect value in code",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/NodeDetector.kt",
+      "root_cause": "Had `~/.nvm/versions/node/*`",
+      "fix": "Changed to `~/.nvm/versions/node`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-12T21:36:35.789Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-06-12T21:36:46.621Z",
+      "error_message": "Incorrect value in code",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "root_cause": "Had `/sidecar/*`",
+      "fix": "Changed to `/sidecar`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-12T21:36:59.656Z"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-06-15T08:52:00.000Z",
+      "error_message": "IllegalStateException: Cannot locate the plugin code source to extract the sidecar bundle",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "root_cause": "protectionDomain.codeSource is null in Gradle runIde dev sandbox \u2014 IntelliJ plugin classloader does not expose a code source",
+      "fix": "Locate bundle via getResource(\"/sidecar/main.js\") URL; handle \"jar:\" (production) and \"file:\" (dev sandbox) protocols",
+      "tags": [
+        "runtime-extraction",
+        "classloader",
+        "runIde",
+        "sandbox"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T08:52:00.000Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-06-15T13:55:11.381Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T13:55:11.381Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-06-15T13:55:21.865Z",
+      "error_message": "Null/undefined access in ",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T13:55:21.865Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-06-15T14:05:40.356Z",
+      "error_message": "Missing guard clause",
+      "file": "sidecar/vendor/webview/app.ts",
+      "root_cause": "No early return/throw for edge case: _dataIsReady",
+      "fix": "Added guard clause: if (_dataIsReady)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:05:40.356Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-06-15T14:21:36.463Z",
+      "error_message": "Type error",
+      "file": "sidecar/vendor/core/parser-claude.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:21:36.463Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-06-15T14:22:18.145Z",
+      "error_message": "Missing error handling in countClaudeImages",
+      "file": "sidecar/vendor/core/parser-claude.ts",
+      "root_cause": "Code path had no error handling \u2014 exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:22:18.145Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-06-15T14:29:56.176Z",
+      "error_message": "Null/undefined access in ",
+      "file": "sidecar/vendor/webview/panel-rpc.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:29:56.176Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-06-15T14:35:00.000Z",
+      "error_message": "Coding Moments page: 'No Loadable Images Found' \u2014 7 image moments detected but getSessionImages returned [] for every CLI/Claude session",
+      "file": "sidecar/vendor/webview/panel-rpc.ts",
+      "root_cause": "Two layered gaps: (1) extractSessionImages only parses the VS Code Copilot file format (kind:0/2 state log); Claude .jsonl stores images as message.content[] blocks {type:'image', source:{type:'base64',media_type,data}} keyed by the line uuid. (2) Deeper: external-harness sessions (Claude/Codex/OpenCode) are collected via parser-harnesses HarnessCollectionContext which only carries {workspaces, sessions} and never registers a SessionSource, so sessionSourceIndex.get(sessionId) misses for all Claude sessions and getSessionImages hit `if(!source) return {images:[]}`.",
+      "fix": "Added extractCliSessionImages(filePath, requestId) in parser-claude.ts (matches line by uuid, converts base64 image-block sources to data: URIs, caps at 4). Stamped session.sourceFilePath in parseClaudeSessionFile (sessionId is NOT reliably the filename). getSessionImages now: dispatches sessionSourceIndex entries on kind, then falls back to session.sourceFilePath for harness==='Claude'. Bumped CACHE_VERSION 9->10 so persisted sessions re-parse with the new field. CSP already allows img-src data:.",
+      "tags": [
+        "coding-moments",
+        "image-gallery",
+        "claude-parser",
+        "sessionSourceIndex",
+        "cli-harness",
+        "getSessionImages",
+        "data-uri"
+      ],
+      "related_bugs": [
+        "bug-015",
+        "bug-016",
+        "bug-017"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:35:00.000Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-06-15T14:46:40.178Z",
+      "error_message": "Missing guard clause",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "root_cause": "No early return/throw for edge case: upToDate",
+      "fix": "Added guard clause: if (upToDate)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "kt"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T14:46:40.178Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-06-15T10:50:00.000Z",
+      "error_message": "Sidecar-side changes (image fix, CACHE_VERSION bump) never reached the running IDE despite rebuilds; runtime/0.1.0/main.js stayed stale",
+      "file": "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt",
+      "root_cause": "ensureExtracted (commit 3be5121) detected 'dev sandbox' via getResource('/sidecar/main.js').protocol=='file' and only then skipped the isComplete() short-circuit. But the IntelliJ runIde sandbox packages the plugin as plugin-0.1.0.jar, so the protocol is 'jar', inDevSandbox=false, isComplete(stale files)=true -> the first-ever extraction was reused forever. Version string (0.1.0) never changes between dev builds. Webview app.js was unaffected (served from JAR by AssetSchemeHandler, not extracted), which masked the bug \u2014 only sidecar main.js changes silently failed to load.",
+      "fix": "Replaced the file://-vs-jar:// heuristic with a content fingerprint: hash the bundled /sidecar/main.js (SHA-256), store it as runtime/<ver>/.bundle-hash, and re-extract whenever the extraction is incomplete or the stored hash != current. Correct for dev (rebuilt bundle) and prod (plugin update) regardless of version-dir name. Verified: fresh runIde re-extracted main.js with the fix and cache re-parsed to version 10.",
+      "tags": [
+        "runtime-extraction",
+        "sandbox",
+        "jar",
+        "stale-bundle",
+        "runIde",
+        "fingerprint",
+        "sidecar"
+      ],
+      "related_bugs": [
+        "bug-010",
+        "bug-011",
+        "bug-018"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T10:50:00.000Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-06-15T11:30:00.000Z",
+      "error_message": "CI: :plugin:buildPlugin -> buildSidecar failed: ERR_MODULE_NOT_FOUND Cannot find package 'esbuild' imported from sidecar/esbuild.mjs",
+      "file": ".github/workflows/ci.yml",
+      "root_cause": "The Gradle 'plugin' job runs buildPlugin which triggers buildSidecar (npm run build -> esbuild). But the job set up only JDK+Gradle: no Node, no synced sidecar/vendor tree, and no sidecar node_modules. esbuild (a devDependency) was absent, and vendor/ (gitignored, sync-populated) was missing too.",
+      "fix": "Added to the plugin job before buildPlugin: Set up Node 20, `node tools/sync-upstream.mjs --skip-tests` (populate sidecar/vendor), and `npm ci` in sidecar (install esbuild + deps). Mirrors the sidecar job's setup. buildPlugin verified green locally.",
+      "tags": [
+        "ci",
+        "github-actions",
+        "buildSidecar",
+        "esbuild",
+        "vendor",
+        "node_modules"
+      ],
+      "related_bugs": [
+        "bug-019"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T11:30:00.000Z"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-06-15T15:59:52.700Z",
+      "error_message": "Wrong return value",
+      "file": "../../../../../tmp/p2gen/sidecar/vendor/core/parser.ts",
+      "root_cause": "Was returning: [...findVsCodeDirs(), ...findXcodeDirs()];",
+      "fix": "Now returns: findVsCodeDirs().filter(d => d.includes('.copilot'",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T15:59:52.700Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-06-15T16:01:51.711Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../../tmp/p2gen/sidecar/vendor/core/parser-main.test.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6\u219210 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T16:01:51.711Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-06-15T12:10:00.000Z",
+      "error_message": "Harness filter does not show GitHub Copilot CLI despite ~/.copilot/session-state having sessions on this device",
+      "file": "tools/patches/0002-findlogsdirs-drop-vscode-xcode.patch",
+      "root_cause": "GitHub Copilot CLI dirs (~/.copilot/session-state, history-session-state) are discovered inside findVsCodeDirs() and parsed via the VS Code CLI-events path (harness 'GitHub Copilot CLI'). Patch 0002 dropped ALL of findLogsDirs() to [], removing the Copilot CLI dirs too \u2014 even though D8 / the patch comment say Copilot CLI is a collected harness. collectExternalHarnesses only covers Claude/Codex/OpenCode, so Copilot CLI fell through the cracks and never parsed.",
+      "fix": "Regenerated patch 0002 so findLogsDirs() returns findVsCodeDirs().filter(d => d.includes('.copilot')) \u2014 keeps Copilot CLI, still drops VS Code workspaceStorage + Xcode (D8). Updated the parser-main.test.ts assertion accordingly. Verified: getHarnesses now returns ['Claude','GitHub Copilot CLI','OpenCode']; 1158 vendored tests green. VS Code Copilot Chat (workspaceStorage) remains intentionally deferred per D8.",
+      "tags": [
+        "copilot",
+        "harness",
+        "findLogsDirs",
+        "patch-0002",
+        "cli-events",
+        "D8"
+      ],
+      "related_bugs": [
+        "bug-018"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-15T12:10:00.000Z"
+    }
+  ]
+}
