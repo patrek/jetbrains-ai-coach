@@ -89,3 +89,10 @@
 | 10:46 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | added 1 condition(s) | ~632 |
 | 10:47 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | 2→5 lines | ~88 |
 | 10:53 | Session end: 19 writes across 8 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 23 reads | ~98937 tok |
+| 11:02 | Session end: 19 writes across 8 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 25 reads | ~101116 tok |
+| 11:07 | Skill Finder llm-unavailable + discoverCatalog errors: diagnosed as ADR 0006/0009 deferrals; user chose defer to part 6 (no code change) | (none) | decision logged in cerebrum | ~8k |
+| 11:07 | Session end: 19 writes across 8 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 26 reads | ~103596 tok |
+| 11:09 | Edited plugin/src/main/resources/webview/index.html | expanded (+22 lines) | ~396 |
+| 11:09 | Edited plugin/src/main/resources/webview/index.html | 1→6 lines | ~46 |
+| 11:09 | Edited plugin/src/main/resources/webview/index.html | 2→2 lines | ~28 |
+| 11:14 | Session end: 22 writes across 9 files (WebviewBridge.kt, app.ts, parser-claude.test.ts, parser-claude.ts, panel-rpc.ts) | 26 reads | ~104099 tok |

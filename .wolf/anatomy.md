@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T14:47:37.780Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T15:09:49.090Z
 > Files: 307 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -145,7 +145,7 @@
 ## plugin/src/main/resources/webview/
 
 - `bootstrap.js` — Declares postToHost (~622 tok)
-- `index.html` — AI Coach (~1593 tok)
+- `index.html` — AI Coach (~1925 tok)
 
 ## plugin/src/test/kotlin/com/aicoach/jetbrains/sidecar/
 

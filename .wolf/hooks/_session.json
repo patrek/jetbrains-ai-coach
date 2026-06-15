@@ -126,6 +126,11 @@
       "count": 1,
       "tokens": 1732,
       "first_read": "2026-06-15T14:55:11.480Z"
+    },
+    "/home/pturcotte/Src/patrick/ai-coach-jetbrains/sidecar/src/rpc-handlers.ts": {
+      "count": 1,
+      "tokens": 2480,
+      "first_read": "2026-06-15T15:04:45.790Z"
     }
   },
   "files_written": [
@@ -242,6 +247,24 @@
       "action": "edit",
       "tokens": 94,
       "at": "2026-06-15T14:47:37.806Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/resources/webview/index.html",
+      "action": "edit",
+      "tokens": 424,
+      "at": "2026-06-15T15:09:13.025Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/resources/webview/index.html",
+      "action": "edit",
+      "tokens": 49,
+      "at": "2026-06-15T15:09:19.274Z"
+    },
+    {
+      "file": "/home/pturcotte/Src/patrick/ai-coach-jetbrains/plugin/src/main/resources/webview/index.html",
+      "action": "edit",
+      "tokens": 30,
+      "at": "2026-06-15T15:09:49.102Z"
     }
   ],
   "edit_counts": {
@@ -252,11 +275,12 @@
     "sidecar/vendor/webview/panel-rpc.ts": 3,
     "sidecar/vendor/core/types/session-types.ts": 1,
     "sidecar/vendor/core/cache.ts": 1,
-    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt": 2
+    "plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt": 2,
+    "plugin/src/main/resources/webview/index.html": 3
   },
-  "anatomy_hits": 25,
+  "anatomy_hits": 26,
   "anatomy_misses": 0,
   "repeated_reads_warned": 10,
   "cerebrum_warnings": 0,
-  "stop_count": 5
+  "stop_count": 8
 }
