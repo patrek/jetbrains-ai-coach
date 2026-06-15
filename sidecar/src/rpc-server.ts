@@ -204,16 +204,21 @@ export class RpcServer {
       this.parseResult.workspaces,
     );
 
-    // Ready BEFORE warmUp so queued requests are served immediately.
+    // Mark internally ready and flush pre-load queued requests BEFORE warmUp
+    // so they are served during warm-up. The wire `dataReady` message goes to
+    // the webview only AFTER warmUp completes: warmUp emits progress pushes,
+    // and the webview's ensureLoadingUI() will re-render the loading screen if
+    // it is called after the dashboard has already cleared #load-progress-bar —
+    // sending dataReady before warmUp causes exactly that race.
     this.dataReady = true;
-    this.send({ type: 'dataReady', currentWorkspace: '' });
+    const queued = this.pending.splice(0, this.pending.length);
+    for (const request of queued) void this.dispatch(request);
 
     try {
       await this.analyzer.warmUp((phase, detail, pct) => this.onProgress({ phase, detail, pct }));
     } catch { /* warmUp is best-effort */ }
 
-    const queued = this.pending.splice(0, this.pending.length);
-    for (const request of queued) void this.dispatch(request);
+    this.send({ type: 'dataReady', currentWorkspace: '' });
   }
 
   private onProgress(p: Partial<LoadProgress> & { phase: number }): void {
