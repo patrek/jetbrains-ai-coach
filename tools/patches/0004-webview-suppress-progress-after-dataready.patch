@@ -1,0 +1,15 @@
+diff --git a/sidecar/vendor/webview/app.ts b/sidecar/vendor/webview/app.ts
+index 321f66f..741628b 100644
+--- a/sidecar/vendor/webview/app.ts
++++ b/sidecar/vendor/webview/app.ts
+@@ -354,6 +354,10 @@ function updatePhaseChecklist(currentPhase: number): void {
+ 
+ /** Update UI based on progress message */
+ function handleProgress(msg: { phase: number; detail?: string; pct: number; sessions?: number; linesOfCode?: number; toolCalls?: number; imagesAnalyzed?: number; filesEdited?: number; requests?: number; workspacePlan?: string[]; workspaceDone?: string }): void {
++  // Once the dashboard is up, ignore any trailing progress pushes (warm-up tail,
++  // or progress triggered by post-ready RPC activity). Otherwise ensureLoadingUI()
++  // re-renders the loading screen on top of the rendered dashboard.
++  if (_dataIsReady) return;
+   ensureLoadingUI();
+   const phase = PHASE_LABELS[msg.phase] ?? `Phase ${msg.phase}`;
+   const detail = msg.detail ?? '';
