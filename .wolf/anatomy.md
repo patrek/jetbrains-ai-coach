@@ -1,12 +1,35 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T19:38:13.812Z
-> Files: 330 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-16T14:04:04.344Z
+> Files: 357 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/p2gen/sidecar/vendor/core/
 
 - `parser-main.test.ts` — API routes: GET (2 endpoints) (~4201 tok)
 - `parser.ts` — Running total of AI-generated lines of code discovered so far. (~8321 tok)
+
+## ../copilot-code-warp/
+
+- `hooks.json` (~52 tok)
+- `install.sh` — Installs the Copilot CLI -> Warp notification hook into the current user's (~228 tok)
+- `LICENSE` (~286 tok)
+- `plugin.json` (~94 tok)
+- `README.md` — Project documentation (~907 tok)
+
+## ../copilot-code-warp/.github/
+
+- `copilot-instructions.md` — Copilot Instructions (~995 tok)
+
+## ../copilot-code-warp/hooks/
+
+- `hooks.json` (~56 tok)
+
+## ../copilot-code-warp/scripts/
+
+- `build-payload.sh` — Builds a structured JSON notification payload for warp://cli-agent. (~442 tok)
+- `on-notification.sh` — Hook script for the Copilot CLI `notification` event. (~485 tok)
+- `should-use-structured.sh` — Determines whether the current Warp build supports structured CLI agent notifications. (~376 tok)
+- `warp-notify.sh` — Warp notification utility using OSC escape sequences. (~254 tok)
 
 ## ./
 
@@ -19,7 +42,7 @@
 - `gradlew.bat` (~766 tok)
 - `LICENSE` — Project license (~291 tok)
 - `NOTICE` (~486 tok)
-- `README.md` — Project documentation (~615 tok)
+- `README.md` — Project documentation (~900 tok)
 - `settings.gradle.kts` — Gradle Kotlin settings (~66 tok)
 
 ## .claude/
@@ -75,6 +98,11 @@
 
 - `plugin-0.1.0.jar` (~265 tok)
 
+## docs/
+
+- `link-out-audit.md` — Link-out audit (~404 tok)
+- `llm-degradation-audit.md` — LLM degradation — per-page audit (~816 tok)
+
 ## docs/ADR/
 
 - `0000-template.md` — ADR NNNN: Title (~95 tok)
@@ -106,14 +134,15 @@
 
 ## docs/reviews/
 
-- `architecture-review.md` — Architecture Review — Part 5 Trust Gate (~2706 tok)
-- `code-simplicity-review.md` — Code Simplicity Review — Part 5 (Trust Gate UI & Project Rule Scoping) (~2573 tok)
+- `architecture-review.md` — Architecture Review — Part 6 (MCP stdio server + host-method completion) (~3462 tok)
+- `code-simplicity-review.md` — Code Simplicity Review — Part 6 (MCP stdio server + host-method completion) (~2438 tok)
 - `pr-readiness-review-part5.md` — PR Readiness Review: Part-5 Trust Gate UI and Project Rule Scoping (~1716 tok)
 - `pr-readiness-review.md` — PR Readiness Review: Part-4 JetBrains Plugin — Theme Integration & State Persistence (~2638 tok)
 - `security-review.md` — Security Review — Part 5: Trust Gate (Rule/Metric DSL) (~3836 tok)
+- `test-quality-review-part6.md` — Test Quality Review — Part 6: MCP stdio server + host-method completion (~4665 tok)
 - `test-quality-review-trust-gate.md` — Test Quality Review — Trust-Gate Feature (~3745 tok)
 - `test-quality-review.md` — Test Quality Review — Part 4: Theme Integration & State Persistence (~2780 tok)
-- `vgv-review.md` — VGV Code Review — Part 4: Theme Integration & Webview State Persistence (~2448 tok)
+- `vgv-review.md` — VGV Code Review — Part 6 (Standalone MCP server, SDLC/catalog ports, host export, LLM gate) (~2930 tok)
 
 ## gradle/
 
@@ -126,12 +155,20 @@
 
 ## plugin/
 
-- `build.gradle.kts` — ", "metrics/**") (~880 tok)
+- `build.gradle.kts` — ", "metrics/**") (~926 tok)
+
+## plugin/src/main/kotlin/com/aicoach/jetbrains/export/
+
+- `ExportSummaryHandler.kt` — One exported file: a date-stamped name plus its rendered content. (~1937 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/
 
 - `AssetSchemeHandler.kt` — Serves the webview bundle to JCEF from the plugin JAR under a real origin. (~1721 tok)
-- `WebviewBridge.kt` — The per-window JS<->host relay: one bridge per open dashboard tool window. (~2791 tok)
+- `WebviewBridge.kt` — The per-window JS<->host relay: one bridge per open dashboard tool window. (~2921 tok)
+
+## plugin/src/main/kotlin/com/aicoach/jetbrains/mcp/
+
+- `McpDiscoveryNotifier.kt` — One-time balloon pointing users at the standalone MCP server (ADR 0002): the (~646 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/settings/
 
@@ -142,7 +179,7 @@
 
 - `NodeDetector.kt` — Locates a usable Node.js (>= 20) for the sidecar. (~2848 tok)
 - `SidecarProcess.kt` — The production [SidecarTransport]: a single Node child process plus the NDJSON (~1165 tok)
-- `SidecarRuntime.kt` — On-disk layout and lifecycle for the extracted Node runtime. (~2060 tok)
+- `SidecarRuntime.kt` — On-disk layout and lifecycle for the extracted Node runtime. (~2762 tok)
 - `SidecarService.kt` — The one application-level sidecar shared by every IDE window (decision D4). (~1290 tok)
 - `SidecarSupervisor.kt` — The app-level sidecar's protocol policy, free of any IntelliJ or process (~3900 tok)
 
@@ -153,7 +190,7 @@
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/
 
-- `CoachToolWindowFactory.kt` — The dashboard tool window. Lazy and `DumbAware` so it opens during indexing. (~2045 tok)
+- `CoachToolWindowFactory.kt` — The dashboard tool window. Lazy and `DumbAware` so it opens during indexing. (~2095 tok)
 
 ## plugin/src/main/kotlin/com/aicoach/jetbrains/trust/
 
@@ -174,6 +211,10 @@
 
 - `bootstrap.js` — Declares postToHost (~622 tok)
 - `index.html` — AI Coach (~1925 tok)
+
+## plugin/src/test/kotlin/com/aicoach/jetbrains/export/
+
+- `ExportSummaryParsingTest.kt` — Unit tests for [parseExportFiles] — the pure wire-parsing of the sidecar's (~475 tok)
 
 ## plugin/src/test/kotlin/com/aicoach/jetbrains/jcef/
 
@@ -197,29 +238,38 @@
 
 - `esbuild.mjs` — esbuild config for the sidecar bundles. (~1627 tok)
 - `package-lock.json` — npm lock file (~22886 tok)
-- `package.json` — Node.js package manifest (~223 tok)
+- `package.json` — Node.js package manifest (~236 tok)
 - `vitest.config.mts` — : the vendored upstream tests (byte-identical to upstream), (~206 tok)
 
 ## sidecar/src/
 
 - `cache-paths.test.ts` (~290 tok)
 - `cache-paths.ts` — Env var the vendored cache module reads to locate its directory. (~580 tok)
+- `export-summary.test.ts` — HandlerContext: ctx (~394 tok)
 - `host-shims.test.ts` — API routes: GET (5 endpoints) (~596 tok)
 - `host-shims.ts` — A request channel to the IDE host, multiplexed over the sidecar's stdout. (~983 tok)
 - `main.ts` — Declares protocolWrite (~694 tok)
+- `mcp-main.ts` — Declares toStderr (~397 tok)
+- `mcp-server.ts` — What the server needs from its data source to answer a tool call: the current (~1712 tok)
+- `mcp-tools.test.ts` — An empty analyzer is enough: the formatters return zeroed shapes for it. (~715 tok)
+- `mcp-tools.ts` — The verbatim upstream message shown when token/credit reporting is disabled by (~2947 tok)
 - `rpc-handlers.test.ts` — HandlerContext: emptyParseResult, ctx (~1108 tok)
-- `rpc-handlers.ts` — Per-request context handed to every handler. (~2836 tok)
+- `rpc-handlers.ts` — Per-request context handed to every handler. (~3198 tok)
 - `rpc-server.ts` — Protocol version reported in the `hello` handshake. (~2905 tok)
 - `rule-scope.ts` — Trust-pending file as surfaced to the webview (content withheld). (~2095 tok)
+- `sdlc-catalog.test.ts` — Minimal `Response` stub for the no-`body` text path of `readTextWithByteLimit`. (~2614 tok)
+- `sdlc-catalog.ts` — The five ported SDLC/catalog handlers, keyed by RPC method name. (~3552 tok)
 
 ## sidecar/test/
 
 - `_probe.test.ts` — Declares root (~344 tok)
+- `disposition-sweep.test.ts` — HandlerContext: ctx (~942 tok)
 - `global-setup.ts` — Exports setup (~295 tok)
 - `harness.ts` — Answer a sidecar host-request, mirroring the part-3 bridge's stubbed trust (~1519 tok)
 - `host-channel.test.ts` — Declares PERSONAL_RULE (~661 tok)
+- `mcp-server.test.ts` — Drives `createMcpServer` over the SDK's in-memory transport pair — proving the (~760 tok)
 - `paths.ts` — Repo-relative sidecar dir (`.../sidecar`). (~369 tok)
-- `rpc-methods.ts` — All 55 core methods. (~965 tok)
+- `rpc-methods.ts` — All 55 core methods. (~1398 tok)
 - `sidecar-rpc.test.ts` — "Answered" = a real handler ran, not unknown-method / not-ready. (~2561 tok)
 - `trust-gate.test.ts` — Approve every pending file for the given project root, then reload it. (~3204 tok)
 
@@ -454,7 +504,7 @@
 - `panel-sidebar.ts` — Exports DashboardSidebarProvider (~893 tok)
 - `panel.ts` — Exports DashboardPanel (~4123 tok)
 - `render.ts` — Secure rendering layer using Preact + htm. (~1328 tok)
-- `shared.ts` — Send a typed RPC call. Pass the expected result type as the generic, e.g. (~4799 tok)
+- `shared.ts` — Send a typed RPC call. Pass the expected result type as the generic, e.g. (~5353 tok)
 - `skill-cache.ts` — Store results scoped to the current filter (~458 tok)
 - `styles-learning.css` — Styles: 120 rules, 1 animations (~5375 tok)
 - `styles-pages.css` — Styles: 130 rules, 1 media queries (~17208 tok)
@@ -468,6 +518,7 @@
 ## tools/
 
 - `sync-upstream.mjs` — Vendoring pipeline for the upstream AI Engineering Coach VS Code extension. (~1732 tok)
+- `upstream.lock` (~70 tok)
 
 ## tools/.upstream-cache/.code-review-graph/
 
@@ -478,4 +529,4 @@
 - `0001-cache-dir-and-atomic-writes.patch` — Exports CacheData (~674 tok)
 - `0002-findlogsdirs-drop-vscode-xcode.patch` — Exports findLogsDirs (~493 tok)
 - `0003-panel-shared-type-only-vscode.patch` — Exports RequestMessage (~137 tok)
-- `README.md` — Project documentation (~723 tok)
+- `README.md` — Project documentation (~883 tok)

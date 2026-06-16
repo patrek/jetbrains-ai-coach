@@ -30,6 +30,40 @@ application-level Node sidecar wraps the vendored core and speaks an NDJSON RPC
 protocol to the Kotlin host; the cache is isolated from the VS Code extension's;
 and an MCP stdio server exposes the same analytics with the IDE closed.
 
+## Using the analytics in Claude Code (MCP)
+
+The plugin ships a standalone [MCP](https://modelcontextprotocol.io) server that
+exposes 12 analytics tools (`aiEngineerCoach_summary`, `_patterns`, `_credits`,
+…) to any MCP client — **and it works with the IDE closed**. It reads the same
+cache the IDE writes and parses on its own.
+
+Open the dashboard tool window at least once so the plugin extracts its runtime,
+then register the server with Claude Code:
+
+```bash
+claude mcp add aicoach -- node ~/.ai-coach-jetbrains/runtime/current/mcp-main.js
+```
+
+Or, for any MCP client that uses a JSON config:
+
+```json
+{
+  "mcpServers": {
+    "aicoach": {
+      "command": "node",
+      "args": ["~/.ai-coach-jetbrains/runtime/current/mcp-main.js"]
+    }
+  }
+}
+```
+
+The `runtime/current/` path is stable: the plugin re-points it at the active
+bundle on every update, so your client config keeps working across plugin
+upgrades. The tool names are pinned (`aiEngineerCoach_*`) for the same reason.
+
+> Custom (personal/project) rules require approval in the IDE; the headless MCP
+> path serves built-in analytics only and leaves unapproved rules pending.
+
 ## Development
 
 ### Prerequisites

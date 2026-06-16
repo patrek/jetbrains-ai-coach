@@ -3,6 +3,7 @@
   "ref": "60d89952ec3405b2a655e9a36804a10a9e60ddf8",
   "paths": {
     "src/core": "sidecar/vendor/core",
-    "src/webview": "sidecar/vendor/webview"
+    "src/webview": "sidecar/vendor/webview",
+    "src/mcp": "sidecar/vendor/mcp"
   }
 }
