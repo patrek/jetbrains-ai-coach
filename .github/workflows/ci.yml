@@ -13,20 +13,26 @@ concurrency:
 
 jobs:
   plugin:
-    name: Gradle build & verifyPlugin
+    name: Gradle build & verifyPlugin (${{ matrix.ide }})
     runs-on: ubuntu-latest
+    strategy:
+      # Verify ONE IDE per job. The verifier shares a single cached NIO zip
+      # FileSystem for the plugin jar across its per-IDE threads, so verifying
+      # several IDEs in one JVM races on that FileSystem being closed
+      # (ClosedFileSystemException). One IDE per process also keeps each job to a
+      # single IDE of disk. fail-fast off so one IDE's failure still reports the rest.
+      fail-fast: false
+      matrix:
+        ide: [IC, PC, WS, GO, RD]
     steps:
       - uses: actions/checkout@v4
 
-      # The IntelliJ Plugin Verifier downloads a full IDE distribution per
-      # verified product (5: IDEA, PyCharm, WebStorm, GoLand, Rider), which
-      # overflows the default runner disk (verifyPlugin gets disk-killed with no
-      # log). Reclaim ~25 GB of preinstalled SDKs and toolchains we don't use.
+      # The IntelliJ Plugin Verifier downloads a full IDE distribution, which can
+      # overflow the default runner disk. Reclaim ~17 GB of preinstalled SDKs we
+      # don't use (toolchains are left intact — setup-* provision into them).
       - name: Free disk space
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/share/swift /usr/local/.ghcup
-          sudo rm -rf /opt/hostedtoolcache
-          sudo apt-get clean
           df -h /
 
       - name: Set up JDK 21
@@ -55,11 +61,13 @@ jobs:
       - name: Build plugin
         run: ./gradlew :plugin:buildPlugin
 
+      # Platform-free unit tests are IDE-agnostic — run them once, on the IC shard.
       - name: Run plugin tests (sidecar supervisor + node detector lifecycle)
+        if: matrix.ide == 'IC'
         run: ./gradlew :plugin:test
 
       - name: Verify plugin
-        run: ./gradlew :plugin:verifyPlugin
+        run: ./gradlew :plugin:verifyPlugin -PverifyIdes=${{ matrix.ide }}
 
   sidecar:
     name: Sidecar — sync & vendored tests

@@ -37,14 +37,23 @@ intellijPlatform {
         ides {
             // Pin explicit STABLE releases (no EAP) so the gate is deterministic.
             // The full 5-product matrix proves the platform-only dependency across
-            // every target IDE (IDEA, PyCharm, WebStorm, GoLand, Rider). The
-            // verifier downloads full IDE distributions, so CI must free disk
-            // first (see .github/workflows/ci.yml).
-            create(IntelliJPlatformType.IntellijIdeaCommunity, "2024.2.5")
-            create(IntelliJPlatformType.PyCharmCommunity, "2024.2.5")
-            create(IntelliJPlatformType.WebStorm, "2024.2.5")
-            create(IntelliJPlatformType.GoLand, "2024.2.5")
-            create(IntelliJPlatformType.Rider, "2024.2.5")
+            // every target IDE (IDEA, PyCharm, WebStorm, GoLand, Rider).
+            //
+            // `-PverifyIdes=WS` (comma-separated keys) restricts verification to a
+            // subset. CI uses this to run ONE IDE per job: the verifier shares a
+            // single cached NIO zip FileSystem for the plugin jar across its
+            // per-IDE threads, so verifying several IDEs in one JVM races on that
+            // FileSystem being closed (ClosedFileSystemException). One IDE per
+            // process side-steps the race and keeps each job to one IDE of disk.
+            // Default (no property) verifies all five — convenient locally.
+            val selected = (providers.gradleProperty("verifyIdes").orNull ?: "all")
+                .split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+            fun wants(key: String) = "all" in selected || key in selected
+            if (wants("IC")) create(IntelliJPlatformType.IntellijIdeaCommunity, "2024.2.5")
+            if (wants("PC")) create(IntelliJPlatformType.PyCharmCommunity, "2024.2.5")
+            if (wants("WS")) create(IntelliJPlatformType.WebStorm, "2024.2.5")
+            if (wants("GO")) create(IntelliJPlatformType.GoLand, "2024.2.5")
+            if (wants("RD")) create(IntelliJPlatformType.Rider, "2024.2.5")
         }
     }
 

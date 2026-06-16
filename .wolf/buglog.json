@@ -1315,6 +1315,56 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-16T19:00:00.000Z"
+    },
+    {
+      "id": "bug-081",
+      "timestamp": "2026-06-16T18:53:34.408Z",
+      "error_message": "Significant refactor of ",
+      "file": "plugin/build.gradle.kts",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 14\u219223 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "kts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-16T18:53:34.408Z"
+    },
+    {
+      "id": "bug-082",
+      "timestamp": "2026-06-16T18:53:55.227Z",
+      "error_message": "Significant refactor of ",
+      "file": ".github/workflows/ci.yml",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 48\u219256 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "yml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-16T18:53:55.227Z"
+    },
+    {
+      "id": "bug-081",
+      "timestamp": "2026-06-16T19:30:00.000Z",
+      "error_message": "verifyPlugin CI: java.nio.file.ClosedFileSystemException; Worker 'com.aicoach.jetbrains:0.1.0 against WS-242...' finished with error; cascade of ClosedByInterruptException reading IDE jars",
+      "file": ".github/workflows/ci.yml, plugin/build.gradle.kts",
+      "root_cause": "Expanding pluginVerification to 5 IDEs ran them in parallel verifier threads in one JVM. The verifier shares a single cached NIO zip FileSystem for the plugin jar across threads; the first thread to finish closes it, so the others throw ClosedFileSystemException (then ClosedByInterruptException as the pool is cancelled). Not disk (all 5 IDEs downloaded fine); the earlier /opt/hostedtoolcache removal was also risky+unneeded.",
+      "fix": "Run one IDE per process. build.gradle.kts reads -PverifyIdes=<comma keys> (IC/PC/WS/GO/RD, default all) to restrict the ides{} set; CI plugin job is a matrix over the 5 keys running verifyPlugin -PverifyIdes=${{matrix.ide}}. Reverted free-disk to the original ~17GB (1 IDE/job needs less; kept hostedtoolcache). :plugin:test gated to the IC shard.",
+      "tags": [
+        "verifyPlugin",
+        "ci",
+        "ClosedFileSystemException",
+        "intellij-plugin-verifier",
+        "matrix"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-16T19:30:00.000Z"
     }
   ]
 }
