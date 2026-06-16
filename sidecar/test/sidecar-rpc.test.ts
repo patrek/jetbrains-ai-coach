@@ -18,7 +18,7 @@ import { FIXTURE_HOME, FIXTURE_CACHE_DIR, FIXTURE_SESSION_COUNT } from './paths'
 import {
   ALL_CORE_METHODS,
   PORTED_METHODS,
-  LLM_METHODS,
+  LLM_DEGRADED_METHODS,
   PARAMS,
   TOKEN_GATED_METHODS,
   TOKEN_GATING_ERROR,
@@ -100,9 +100,22 @@ describe('sidecar stdio RPC — per-method suite', () => {
     expect(Array.isArray(data.deps)).toBe(true);
   });
 
-  it.each(LLM_METHODS)('LLM method degrades with the typed error: %s', async (method) => {
+  it.each(LLM_DEGRADED_METHODS)('unbacked LLM method degrades with the typed error: %s', async (method) => {
     const data = await harness.request(method, { prompt: 'x', ruleId: 'x', sessionId: 'x' });
     expect(data).toEqual({ error: 'llm-unavailable' });
+  });
+
+  // generateRule/explainOccurrence are wired to a provider; with no provider
+  // stamped, each reaches its REAL override (not the unconditional degrade set)
+  // and falls through its no-provider/guard path.
+  it('generateRule degrades to llm-unavailable when no provider is stamped', async () => {
+    const data = await harness.request('generateRule', { prompt: 'x' });
+    expect(data).toEqual({ error: 'llm-unavailable' });
+  });
+
+  it('explainOccurrence runs its real handler (input guard), not the degrade stub', async () => {
+    const data = await harness.request('explainOccurrence', { ruleId: 'nope', sessionId: 'nope' });
+    expect(data).toEqual({ ok: false, explanation: '', error: 'Rule not found' });
   });
 
   it('unknown methods get a typed error, not a crash', async () => {

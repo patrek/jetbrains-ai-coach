@@ -36,7 +36,14 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { getRpcHandler, validateDateFilter } from '../vendor/webview/panel-rpc';
+import {
+  getRpcHandler,
+  validateDateFilter,
+  GENERATE_RULE_SYSTEM_PROMPT,
+  cleanRuleMarkdown,
+  validateRuleMarkdown,
+  buildOccurrenceSessionSummary,
+} from '../vendor/webview/panel-rpc';
 import { errorResult, isString, isNumber, isRecord } from '../vendor/webview/panel-shared';
 import {
   buildSummaryExportFromAnalyzer,
@@ -44,8 +51,10 @@ import {
   renderSummaryJson,
   renderSummaryMarkdown,
 } from '../vendor/core/summary-export';
-import { parseRule } from '../vendor/core/rule-parser';
+import { parseRule, serializeRule } from '../vendor/core/rule-parser';
 import { getRule, createRuleFromMarkdown } from '../vendor/core/rule-engine';
+import type { ErrorResult } from '../vendor/core/types';
+import { resolveProvider } from './cli-provider';
 import { getPersonalRulesDir, getProjectRulesDir } from '../vendor/core/rule-loader';
 import { approve as approveTrust, getDefaultTrustStore } from '../vendor/core/rule-trust';
 import { ruleScope, currentPending, approvePending } from './rule-scope';
@@ -70,20 +79,30 @@ export interface HandlerContext {
    * means the project layer is loaded normally.
    */
   safeMode?: boolean;
+  /**
+   * The CLI inference provider the host resolved for this window, stamped onto
+   * the request envelope only when a provider is selected, consented, and
+   * available (see the cli-provider plan). `undefined` means no provider — the
+   * LLM-backed handlers degrade to `errorResult('llm-unavailable')`, exactly as
+   * when these methods were unconditionally in `LLM_UNAVAILABLE_METHODS`.
+   */
+  provider?: { id: string; binaryPath: string };
 }
 
 export type SidecarHandler = (ctx: HandlerContext) => unknown | Promise<unknown>;
 
 /* ---- LLM degradation ---- */
 
-/** The three LLM core methods (`generateRule`, `compileNlRule`,
- *  `explainOccurrence`) plus the LLM-backed extension methods. All degrade to
- *  the same typed error; the webview gates on `capabilities.llm === false`.
- *  Exported so the test suite can assert every entry degrades. */
+/** The LLM core/extension methods that still have no backend and degrade to the
+ *  same typed error; the webview gates on `capabilities.llm === false`. Exported
+ *  so the test suite can assert every entry degrades.
+ *
+ *  `generateRule` and `explainOccurrence` are NOT here: they are wired to a
+ *  selectable CLI provider via the `OVERRIDES` below (they still degrade to
+ *  `llm-unavailable` when no provider is stamped). `compileNlRule` stays — its
+ *  LLM call is buried in `vendor/core/rule-compiler.ts` and is descoped. */
 export const LLM_UNAVAILABLE_METHODS: ReadonlySet<string> = new Set<string>([
-  'generateRule',
   'compileNlRule',
-  'explainOccurrence',
   'createSkill',
   'generateSkillContent',
   'generateLearningQuiz',
@@ -240,8 +259,111 @@ const reloadLocalRules: SidecarHandler = (ctx) => {
   return { pending: currentPending() };
 };
 
+/* ---- LLM via selectable CLI provider (generateRule, explainOccurrence) ---- */
+//
+// These two methods used to sit in LLM_UNAVAILABLE_METHODS. They now route the
+// prompt to whatever CLI provider the host stamped on the envelope. With no
+// stamp (or an unresolvable id) they degrade to the historical
+// `errorResult('llm-unavailable')`. On a provider failure they degrade to the
+// same error augmented with a distinguishable `reason` so the webview can keep
+// gating on `capabilities.llm === false` while surfacing why. No auto-fallback
+// to the other CLI.
+
+type ProviderRun =
+  | { ok: true; text: string }
+  | { ok: false; error: ErrorResult };
+
+async function runWithProvider(ctx: HandlerContext, prompt: string): Promise<ProviderRun> {
+  if (!ctx.provider) return { ok: false, error: errorResult('llm-unavailable') };
+  const provider = resolveProvider(ctx.provider.id);
+  // An unresolvable id is a host bug; degrade like an absent stamp (no spawn).
+  if (!provider) return { ok: false, error: errorResult('llm-unavailable') };
+
+  // The adapter imposes its own deadline; a caller `signal` (graceful-shutdown
+  // cancellation) is a PR2 seam — the sidecar exits via `process.exit` today.
+  const result = await provider.run(prompt, { binaryPath: ctx.provider.binaryPath });
+  if (!result.ok) return { ok: false, error: errorResult('llm-unavailable', { reason: result.reason }) };
+  return { ok: true, text: result.text };
+}
+
+const generateRule: SidecarHandler = async (ctx) => {
+  const prompt = isString(ctx.params?.prompt) ? ctx.params.prompt : '';
+  const id =
+    prompt
+      .toLowerCase()
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-|-$/g, '')
+      .substring(0, 40) || 'custom-rule';
+
+  // provider.run() takes one flat string, so system + user collapse into one
+  // prompt. The upstream validate-and-retry loop is preserved by re-invoking the
+  // provider with an augmented prompt embedding the prior attempt + its issues.
+  const basePrompt = `${GENERATE_RULE_SYSTEM_PROMPT}\n\nGenerate a complete detection rule for: ${prompt}\n\nUse id: ${id}`;
+  let attemptPrompt = basePrompt;
+
+  const MAX_ATTEMPTS = 2;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const run = await runWithProvider(ctx, attemptPrompt);
+    if (!run.ok) return run.error;
+    const markdown = cleanRuleMarkdown(run.text);
+    const issues = validateRuleMarkdown(markdown);
+    if (issues.length === 0) return { markdown };
+    attemptPrompt =
+      `${basePrompt}\n\nA previous attempt produced:\n${run.text}\n\n` +
+      `It has these issues:\n${issues.map((i) => `- ${i}`).join('\n')}\n\n` +
+      `Fix them and output ONLY the complete corrected rule markdown. No code fences.`;
+  }
+
+  // After the retries, return the last attempt even if imperfect (upstream parity).
+  const finalRun = await runWithProvider(ctx, attemptPrompt);
+  if (!finalRun.ok) return finalRun.error;
+  return { markdown: cleanRuleMarkdown(finalRun.text) };
+};
+
+const explainOccurrence: SidecarHandler = async (ctx) => {
+  const ruleId = isString(ctx.params?.ruleId) ? ctx.params.ruleId : '';
+  const sessionId = isString(ctx.params?.sessionId) ? ctx.params.sessionId : '';
+  if (!ruleId || !sessionId) return { ok: false, explanation: '', error: 'Missing ruleId or sessionId' };
+
+  const rule = getRule(ruleId);
+  if (!rule) return { ok: false, explanation: '', error: 'Rule not found' };
+
+  const filter = isRecord(ctx.params?.filter) ? validateDateFilter(ctx.params.filter) : undefined;
+  const session = ctx.analyzer.filterSessions(filter).find((s) => s.sessionId === sessionId);
+  if (!session) return { ok: false, explanation: '', error: 'Session not found' };
+
+  const sessionSummary = buildOccurrenceSessionSummary(session);
+
+  // Re-derived from the upstream inline literals (they are not importable
+  // symbols). The role-tagged System/User messages collapse into one prompt.
+  const systemPrompt = `You are an expert explaining why a specific coding session triggered an AI Engineer Coach detection rule.
+You will receive the rule (in DSL form) and a summary of the session. Explain in 2-4 short sentences:
+1. What the rule is looking for
+2. Which specific aspects of this session match the rule
+3. One concrete action the user can take for this specific session
+
+Be specific. Reference actual values from the session. Keep it under 80 words. No preamble.`;
+
+  const userPrompt = `Rule: ${rule.name}
+Description: ${rule.description}
+
+Rule DSL (markdown):
+${rule.rawSource || serializeRule(rule)}
+
+Session summary:
+${JSON.stringify(sessionSummary, null, 2)}
+
+Explain why this session triggered the rule.`;
+
+  const run = await runWithProvider(ctx, `${systemPrompt}\n\n${userPrompt}`);
+  if (!run.ok) return run.error;
+  return { ok: true, explanation: run.text.trim() };
+};
+
 const OVERRIDES: Record<string, SidecarHandler> = {
   saveRule,
+  generateRule,
+  explainOccurrence,
   getWorkspaceDeps,
   reviewLocalRules: () => ({ ok: false, error: 'reviewLocalRules is handled by the IDE host' }),
   getLocalRulesPending,
