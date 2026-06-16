@@ -4,16 +4,24 @@
  * this committed list IS the mechanical enumeration — kept in lockstep with
  * the type by the test that asserts every vendored handler is covered.
  *
- * `LLM_METHODS` are the three that must degrade to `{ error: 'llm-unavailable' }`.
+ * `LLM_METHODS` are the three that degrade to `{ error: 'llm-unavailable' }` in
+ * this suite. `compileNlRule` has no backend; `generateRule`/`explainOccurrence`
+ * are now wired to a selectable CLI provider (see the cli-provider plan) but the
+ * integration harness stamps no provider, so they take the real override's
+ * no-provider path and degrade identically — proving a real handler ran.
  * `PORTED_METHODS` must all answer. `PARAMS` supplies the minimal params a few
  * methods need to exercise a real code path instead of an early guard.
  */
 
-export const LLM_METHODS: readonly string[] = [
-  'generateRule',
-  'compileNlRule',
-  'explainOccurrence',
-];
+/** No backend at all — always degrade to `{ error: 'llm-unavailable' }`. */
+export const LLM_DEGRADED_METHODS: readonly string[] = ['compileNlRule'];
+
+/** Wired to a selectable CLI provider; with no provider stamped (this harness)
+ *  they reach the real override and degrade by its no-provider/guard path. */
+export const PROVIDER_WIRED_METHODS: readonly string[] = ['generateRule', 'explainOccurrence'];
+
+/** The three LLM core methods, for the vendored-handler lockstep check. */
+const LLM_METHODS: readonly string[] = [...PROVIDER_WIRED_METHODS, ...LLM_DEGRADED_METHODS];
 
 export const PORTED_METHODS: readonly string[] = [
   'getWorkspaces',

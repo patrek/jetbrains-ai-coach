@@ -3,7 +3,7 @@
  *
  * Speaks the upstream webview envelope over NDJSON (one JSON object per line):
  *
- *   in   { type:'request', id, method, params?, projectRoot?, safeMode? }
+ *   in   { type:'request', id, method, params?, projectRoot?, safeMode?, provider? }
  *        { type:'host-response', id, data }                 // reply to a host-request
  *   out  { type:'hello', version, capabilities }            // handshake, sent first
  *        { type:'progress', phase, detail, pct, ... }       // pushed during parse
@@ -65,7 +65,17 @@ type IncomingRequest = {
   params: Record<string, unknown>;
   projectRoot?: string;
   safeMode?: boolean;
+  provider?: { id: string; binaryPath: string };
 };
+
+/** Narrow the optional `provider` envelope stamp; both fields must be strings
+ *  (mirroring how `projectRoot`/`safeMode` are validated). Exported for tests. */
+export function parseProvider(value: unknown): { id: string; binaryPath: string } | undefined {
+  if (!isRecord(value)) return undefined;
+  return isString(value.id) && isString(value.binaryPath)
+    ? { id: value.id, binaryPath: value.binaryPath }
+    : undefined;
+}
 
 export class RpcServer {
   private readonly input: Readable;
@@ -163,6 +173,7 @@ export class RpcServer {
       params: isRecord(msg.params) ? msg.params : {},
       projectRoot: isString(msg.projectRoot) ? msg.projectRoot : undefined,
       safeMode: typeof msg.safeMode === 'boolean' ? msg.safeMode : undefined,
+      provider: parseProvider(msg.provider),
     };
 
     if (!this.dataReady) {
@@ -190,6 +201,7 @@ export class RpcServer {
           params: request.params,
           projectRoot: request.projectRoot,
           safeMode: request.safeMode,
+          provider: request.provider,
         }),
       );
       this.send({ type: 'response', id: request.id, data });

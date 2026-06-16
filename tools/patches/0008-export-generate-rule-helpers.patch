@@ -1,0 +1,40 @@
+diff --git a/sidecar/vendor/webview/panel-rpc.ts b/sidecar/vendor/webview/panel-rpc.ts
+index 6631309..e62c94e 100644
+--- a/sidecar/vendor/webview/panel-rpc.ts
++++ b/sidecar/vendor/webview/panel-rpc.ts
+@@ -159,7 +159,7 @@ function firstNonEmptyText(...values: unknown[]): string {
+ }
+ 
+ 
+-function buildOccurrenceSessionSummary(session: Session): {
++export function buildOccurrenceSessionSummary(session: Session): {
+   sessionId: string;
+   workspaceName: string;
+   requestCount: number;
+@@ -190,7 +190,7 @@ function buildOccurrenceSessionSummary(session: Session): {
+ 
+ /* ── Rule generation helpers ── */
+ 
+-const GENERATE_RULE_SYSTEM_PROMPT = `You are an expert at writing detection rules for the AI Engineer Coach VS Code extension.
++export const GENERATE_RULE_SYSTEM_PROMPT = `You are an expert at writing detection rules for the AI Engineer Coach VS Code extension.
+ Rules are markdown files with YAML frontmatter and a Detection Logic block using a custom DSL.
+ 
+ ${DSL_CHEATSHEET}
+@@ -603,7 +603,7 @@ examples: {{workspaceName}}: {{requestCount}} messages
+ 
+ Output ONLY the raw markdown rule. No code fences around the whole output. No explanation.`;
+ 
+-function cleanRuleMarkdown(raw: string): string {
++export function cleanRuleMarkdown(raw: string): string {
+   let md = raw.trim();
+   // Strip outer code fences
+   md = md.replace(/^```(?:markdown|md)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+@@ -613,7 +613,7 @@ function cleanRuleMarkdown(raw: string): string {
+   return md;
+ }
+ 
+-function validateRuleMarkdown(md: string): string[] {
++export function validateRuleMarkdown(md: string): string[] {
+   const issues: string[] = [];
+   if (!md.match(/^---\n/)) issues.push('Missing YAML frontmatter (must start with ---)');
+   if (!md.match(/\n---\n/)) issues.push('Frontmatter not properly closed (missing closing ---)');
