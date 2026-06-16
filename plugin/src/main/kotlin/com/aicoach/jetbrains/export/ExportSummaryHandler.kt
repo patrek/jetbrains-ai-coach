@@ -78,7 +78,7 @@ class ExportSummaryHandler(
         }
 
         val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
-            .withTitle("Export AI Coach Summary")
+            .withTitle("Export AI Usage Coach Summary")
             .withDescription("Choose a folder for the summary files.")
         val dir: VirtualFile? = FileChooser.chooseFile(descriptor, project, project.guessProjectDir())
         if (dir == null) {
@@ -115,7 +115,7 @@ class ExportSummaryHandler(
         val group = NotificationGroupManager.getInstance().getNotificationGroup(GROUP_ID) ?: return
         val count = written.size
         val notification = group.createNotification(
-            "AI Coach",
+            "AI Usage Coach",
             "Exported summary ($count file${if (count == 1) "" else "s"}).",
             NotificationType.INFORMATION,
         )
@@ -131,7 +131,7 @@ class ExportSummaryHandler(
 
     private fun notify(content: String, type: NotificationType) {
         NotificationGroupManager.getInstance().getNotificationGroup(GROUP_ID)
-            ?.createNotification("AI Coach", content, type)
+            ?.createNotification("AI Usage Coach", content, type)
             ?.notify(project)
     }
 
@@ -150,7 +150,7 @@ class ExportSummaryHandler(
         }
 
     companion object {
-        private const val GROUP_ID = "AI Coach"
+        private const val GROUP_ID = "AI Usage Coach"
         private val log = logger<ExportSummaryHandler>()
     }
 }

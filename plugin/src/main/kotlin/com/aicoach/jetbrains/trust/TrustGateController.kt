@@ -109,7 +109,7 @@ class TrustGateController(
     private fun notifyPending(count: Int) {
         val group = NotificationGroupManager.getInstance().getNotificationGroup(GROUP_ID) ?: return
         val notification = group.createNotification(
-            "AI Coach",
+            "AI Usage Coach",
             "$count local rule${if (count == 1) "" else "s"} pending review.",
             NotificationType.WARNING,
         )
@@ -128,7 +128,7 @@ class TrustGateController(
 
     private fun notify(content: String, type: NotificationType) {
         NotificationGroupManager.getInstance().getNotificationGroup(GROUP_ID)
-            ?.createNotification("AI Coach", content, type)
+            ?.createNotification("AI Usage Coach", content, type)
             ?.notify(project)
     }
 
@@ -144,7 +144,7 @@ class TrustGateController(
     }
 
     companion object {
-        private const val GROUP_ID = "AI Coach Trust"
+        private const val GROUP_ID = "AI Usage Coach Trust"
         private val log = logger<TrustGateController>()
     }
 }

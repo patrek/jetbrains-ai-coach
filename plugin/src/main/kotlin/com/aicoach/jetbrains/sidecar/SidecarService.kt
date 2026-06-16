@@ -1,5 +1,6 @@
 package com.aicoach.jetbrains.sidecar
 
+import com.aicoach.jetbrains.settings.CoachSettings
 import com.aicoach.jetbrains.trust.TrustStoreService
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit
 @Service(Service.Level.APP)
 class SidecarService : Disposable {
 
-    private data class Launch(val nodePath: String, val mainJs: Path)
+    private data class Launch(val nodePath: String, val mainJs: Path, val excludedDirs: List<String>)
 
     @Volatile
     private var launch: Launch? = null
@@ -39,7 +40,8 @@ class SidecarService : Disposable {
     private val supervisor = SidecarSupervisor(
         transportFactory = SidecarTransportFactory { sink ->
             val cfg = launch ?: error("Sidecar launch configuration not set")
-            SidecarProcessFactory(cfg.nodePath, cfg.mainJs, SidecarRuntime::recordPid, ::appendLog).start(sink)
+            SidecarProcessFactory(cfg.nodePath, cfg.mainJs, cfg.excludedDirs, SidecarRuntime::recordPid, ::appendLog)
+                .start(sink)
         },
         scheduler = { delayMs, task ->
             val future = AppExecutorUtil.getAppScheduledExecutorService()
@@ -66,8 +68,24 @@ class SidecarService : Disposable {
         started = true
         val mainJs = SidecarRuntime.ensureExtracted(pluginVersion())
         SidecarRuntime.sweepStaleProcess()
-        launch = Launch(nodePath, mainJs)
+        launch = Launch(nodePath, mainJs, CoachSettings.getInstance().excludedDirs)
         supervisor.start()
+    }
+
+    /**
+     * Re-read the excluded-directory setting and relaunch the running sidecar so
+     * the change takes effect immediately — no IDE restart. The relaunch is what
+     * applies the new `AI_COACH_EXCLUDED_DIRS` (the env is fixed at process spawn).
+     * No-op if the sidecar has not started yet (the first start reads it fresh) or
+     * if the list is unchanged.
+     */
+    @Synchronized
+    fun reloadExcludedDirs() {
+        val current = launch ?: return
+        val updated = CoachSettings.getInstance().excludedDirs
+        if (updated == current.excludedDirs) return
+        launch = current.copy(excludedDirs = updated)
+        supervisor.requestRestart()
     }
 
     fun register(client: SidecarSupervisor.Client) = supervisor.registerClient(client)

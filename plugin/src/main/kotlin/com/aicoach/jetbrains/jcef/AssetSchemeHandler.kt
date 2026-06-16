@@ -65,7 +65,6 @@ object AssetSchemeHandler {
                 "", "/", "/index.html" -> resource("index.html", MIME_HTML)
                 "/app.js" -> resource("app.js", MIME_JS)
                 "/styles.css" -> resource("styles.css", MIME_CSS)
-                "/test-harness.html" -> resource("test-harness.html", MIME_HTML)
                 "/bootstrap.js" -> bootstrap()
                 else -> {
                     log.debug("Asset 404: $path")

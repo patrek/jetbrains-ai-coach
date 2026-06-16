@@ -7,6 +7,7 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Key
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
@@ -102,10 +103,16 @@ class SidecarProcess(
  * `main.js` are resolved once by [SidecarService] before the first start; the
  * working directory is the runtime dir so the bundle finds its `rules/` and
  * `metrics/` siblings.
+ *
+ * [excludedDirs] are forwarded as the `AI_COACH_EXCLUDED_DIRS` environment
+ * variable (the platform path separator joins them). The sidecar — and the parse
+ * worker it spawns, which inherits this environment — skips these directories so
+ * they are never read.
  */
 class SidecarProcessFactory(
     private val nodePath: String,
     private val mainJs: Path,
+    private val excludedDirs: List<String>,
     private val onPid: (Long?) -> Unit,
     private val logSink: (String) -> Unit,
 ) : SidecarTransportFactory {
@@ -113,8 +120,16 @@ class SidecarProcessFactory(
     override fun start(sink: SidecarSink): SidecarTransport {
         val commandLine = GeneralCommandLine(nodePath, mainJs.toString())
             .withWorkDirectory(mainJs.parent.toFile())
+        if (excludedDirs.isNotEmpty()) {
+            commandLine.withEnvironment(EXCLUDED_DIRS_ENV, excludedDirs.joinToString(File.pathSeparator))
+        }
         val process = SidecarProcess(commandLine, sink, logSink)
         onPid(process.pid())
         return process
+    }
+
+    companion object {
+        /** Mirror of the sidecar's `dir-exclusion.ts` env contract. */
+        const val EXCLUDED_DIRS_ENV = "AI_COACH_EXCLUDED_DIRS"
     }
 }

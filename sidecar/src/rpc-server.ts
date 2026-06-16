@@ -27,6 +27,7 @@ import { findLogsDirs, parseAllLogsViaWorker } from '../vendor/core/parser';
 import type { ParseResult, LoadProgress } from '../vendor/core/parser';
 import { errorResult, isString, isRecord } from '../vendor/webview/panel-shared';
 import { createHostTrustMemento, installTrustMemento, loadTrustSeed, type HostChannel } from './host-shims';
+import { filterExcludedDirs } from './dir-exclusion';
 import { resolveHandler } from './rpc-handlers';
 import { ruleScope } from './rule-scope';
 
@@ -199,10 +200,12 @@ export class RpcServer {
 
   private async loadData(): Promise<void> {
     try {
-      // findLogsDirs is patched to [] — CLI harnesses are collected by the
-      // worker independently. With no sources the parse simply returns empty,
-      // so the sidecar still comes up ready and answers with empty data.
-      const dirs = findLogsDirs();
+      // findLogsDirs yields the Copilot CLI dir (fork divergence D8); the worker
+      // collects Claude/Codex/OpenCode independently. With no sources the parse
+      // simply returns empty, so the sidecar still comes up ready with empty data.
+      // The user's directory exclusions are applied here (Copilot) and inside the
+      // worker (other harnesses, via the vendored patch).
+      const dirs = filterExcludedDirs(findLogsDirs());
       this.parseResult = await parseAllLogsViaWorker(dirs, (p) => this.onProgress(p));
     } catch (err) {
       process.stderr.write(`[sidecar] parse failed: ${err instanceof Error ? err.message : String(err)}\n`);

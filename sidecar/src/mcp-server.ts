@@ -39,6 +39,7 @@ import { loadCacheData } from '../vendor/core/cache';
 import { findLogsDirs, parseAllLogsViaWorker } from '../vendor/core/parser';
 import type { ParseResult } from '../vendor/core/parser';
 import { createHostTrustMemento, installTrustMemento } from './host-shims';
+import { filterExcludedDirs } from './dir-exclusion';
 import { ruleScope } from './rule-scope';
 import { MCP_TOOL_DEFS, partialDataNote, runTool } from './mcp-tools';
 
@@ -112,7 +113,7 @@ export class McpDataSource implements McpToolSource {
 
   private async refresh(): Promise<void> {
     try {
-      const result = await parseAllLogsViaWorker(findLogsDirs());
+      const result = await parseAllLogsViaWorker(filterExcludedDirs(findLogsDirs()));
       this.setResult(result);
     } catch (err) {
       process.stderr.write(`[mcp] background parse failed: ${err instanceof Error ? err.message : String(err)}\n`);

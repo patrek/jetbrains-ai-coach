@@ -1,0 +1,81 @@
+diff --git a/sidecar/vendor/core/parser-harnesses.ts b/sidecar/vendor/core/parser-harnesses.ts
+index 76b33e6..cae5e91 100644
+--- a/sidecar/vendor/core/parser-harnesses.ts
++++ b/sidecar/vendor/core/parser-harnesses.ts
+@@ -6,6 +6,7 @@
+ /* External harness collection registry for parser orchestration. */
+ 
+ import * as fs from 'fs';
++import * as path from 'path';
+ import { Workspace, Session } from './types';
+ import { findClaudeDirs, parseClaudeSessions, parseClaudeSessionsAsync } from './parser-claude';
+ import { findCodexDirs, parseCodexSessions } from './parser-codex';
+@@ -13,6 +14,22 @@ import { findOpenCodeDirs, parseOpenCodeSessions } from './parser-opencode';
+ 
+ type WorkspaceMap = Map<string, Workspace>;
+ 
++// Fork divergence (JetBrains port, part 7): drop directories the IDE host
++// excluded via the AI_COACH_EXCLUDED_DIRS env var (platform-path-separator
++// joined). A directory is excluded when it equals an excluded root or is nested
++// under one. Mirrors the sidecar's src/dir-exclusion.ts; inlined here so the
++// vendored tree stays self-contained (no import out of vendor/).
++function excludeScannedDirs(dirs: string[]): string[] {
++  const raw = process.env.AI_COACH_EXCLUDED_DIRS;
++  if (!raw || !raw.trim()) return dirs;
++  const roots = raw.split(path.delimiter).map(s => s.trim()).filter(Boolean).map(s => path.resolve(s));
++  if (roots.length === 0) return dirs;
++  return dirs.filter(dir => {
++    const normalized = path.resolve(dir);
++    return !roots.some(root => normalized === root || normalized.startsWith(root + path.sep));
++  });
++}
++
+ interface HarnessCollectionContext {
+   workspaces: WorkspaceMap;
+   sessions: Session[];
+@@ -36,14 +53,14 @@ const EXTERNAL_HARNESSES: ExternalHarnessCollector[] = [
+   {
+     name: 'Claude Code',
+     collectSync(ctx) {
+-      for (const claudeDir of findClaudeDirs()) {
++      for (const claudeDir of excludeScannedDirs(findClaudeDirs())) {
+         for (const { sessions } of parseClaudeSessions(claudeDir)) {
+           for (const session of sessions) addSession(ctx.workspaces, ctx.sessions, session, claudeDir);
+         }
+       }
+     },
+     async collectAsync(ctx, reportDetail) {
+-      for (const claudeDir of findClaudeDirs()) {
++      for (const claudeDir of excludeScannedDirs(findClaudeDirs())) {
+         const results = await parseClaudeSessionsAsync(claudeDir, (idx, total, name) => {
+           reportDetail?.(`${idx}/${total}: ${name}`);
+         });
+@@ -56,7 +73,7 @@ const EXTERNAL_HARNESSES: ExternalHarnessCollector[] = [
+   {
+     name: 'Codex CLI',
+     collectSync(ctx) {
+-      for (const codexDir of findCodexDirs()) {
++      for (const codexDir of excludeScannedDirs(findCodexDirs())) {
+         for (const session of parseCodexSessions(codexDir)) addSession(ctx.workspaces, ctx.sessions, session, codexDir);
+       }
+     },
+@@ -64,7 +81,7 @@ const EXTERNAL_HARNESSES: ExternalHarnessCollector[] = [
+   {
+     name: 'OpenCode',
+     collectSync(ctx) {
+-      for (const ocDir of findOpenCodeDirs()) {
++      for (const ocDir of excludeScannedDirs(findOpenCodeDirs())) {
+         for (const session of parseOpenCodeSessions(ocDir)) addSession(ctx.workspaces, ctx.sessions, session, ocDir);
+       }
+     },
+@@ -88,7 +105,9 @@ export function hasExternalHarnessSources(): boolean {
+   // string and probe relative paths (e.g. `.claude/projects`) under the current
+   // working directory, which could report false positives. Bail out instead.
+   if (!process.env.HOME && !process.env.USERPROFILE) return false;
+-  return findClaudeDirs().length > 0 || findCodexDirs().length > 0 || findOpenCodeDirs().length > 0;
++  return excludeScannedDirs(findClaudeDirs()).length > 0 ||
++    excludeScannedDirs(findCodexDirs()).length > 0 ||
++    excludeScannedDirs(findOpenCodeDirs()).length > 0;
+ }
+ 
+ export function collectExternalHarnessesSync(workspaces: WorkspaceMap, sessions: Session[]): void {

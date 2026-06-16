@@ -207,7 +207,7 @@ class SidecarSupervisor(
         if (uptime > STABLE_RUN_MS) restartCount = 0 // a stable run earns a fresh budget
 
         if (restartCount >= MAX_RESTARTS) {
-            fatalMessage = "The AI Coach sidecar crashed repeatedly (exit $code). " +
+            fatalMessage = "The AI Usage Coach sidecar crashed repeatedly (exit $code). " +
                 "Use \"Restart sidecar\" to try again or view the logs."
             broadcastError(fatalMessage!!)
             return
@@ -225,7 +225,7 @@ class SidecarSupervisor(
     private fun handleHello(message: JsonObject) {
         val version = message.get("version")?.asStringOrNull()
         if (version != expectedProtocolVersion) {
-            fatalMessage = "AI Coach sidecar protocol mismatch: expected " +
+            fatalMessage = "AI Usage Coach sidecar protocol mismatch: expected " +
                 "$expectedProtocolVersion, got ${version ?: "none"}."
             broadcastError(fatalMessage!!)
             // Don't proceed on a mismatch — surface it instead of risking a

@@ -1,5 +1,6 @@
 package com.aicoach.jetbrains.toolwindow
 
+import com.aicoach.jetbrains.disclosure.DataAccessDisclosure
 import com.aicoach.jetbrains.jcef.AssetSchemeHandler
 import com.aicoach.jetbrains.jcef.WebviewBridge
 import com.aicoach.jetbrains.mcp.McpDiscoveryNotifier
@@ -48,6 +49,8 @@ class CoachToolWindowFactory : ToolWindowFactory, DumbAware {
         val content = toolWindow.contentManager.factory.createContent(dashboard.root, "", false)
         content.isCloseable = false
         toolWindow.contentManager.addContent(content)
+        // Disclose data access before the sidecar reads anything (shown once).
+        DataAccessDisclosure.maybeShow(project)
         dashboard.start()
         // First-open discovery: point users at the IDE-closed MCP tools (once).
         McpDiscoveryNotifier.maybeNotify(project)
@@ -69,7 +72,7 @@ internal class CoachDashboard(private val project: Project) : Disposable {
     }
 
     private fun detectAndRender() {
-        showCenter(messagePanel("Detecting Node…", "Locating a Node.js runtime for the AI Coach sidecar."))
+        showCenter(messagePanel("Detecting Node…", "Locating a Node.js runtime for the AI Usage Coach sidecar."))
         ApplicationManager.getApplication().executeOnPooledThread {
             val result = NodeDetector.forCurrentSystem().detect()
             invokeOnUi {
@@ -110,15 +113,15 @@ internal class CoachDashboard(private val project: Project) : Disposable {
 
     private fun jcefUnsupportedPanel(): JComponent = messagePanel(
         "Embedded browser unavailable",
-        "The AI Coach dashboard needs the IDE's embedded browser (JCEF), which is not available in this IDE. " +
+        "The AI Usage Coach dashboard needs the IDE's embedded browser (JCEF), which is not available in this IDE. " +
             "Enable it via Help → Find Action → \"Registry…\", set ide.browser.jcef.enabled to true, then restart the IDE.",
     )
 
     private fun nodeMissingPanel(checked: List<String>): JComponent = messagePanel(
         "Node.js not found",
         buildString {
-            append("AI Coach needs Node.js ${NodeDetector.MIN_MAJOR} or newer. Install Node, or set its path in ")
-            append("Settings → Tools → AI Coach, then Retry.\n\nLooked in:\n")
+            append("AI Usage Coach needs Node.js ${NodeDetector.MIN_MAJOR} or newer. Install Node, or set its path in ")
+            append("Settings → Tools → AI Usage Coach, then Retry.\n\nLooked in:\n")
             append(checked.joinToString("\n") { "  • $it" })
         },
         retry = true,
@@ -126,15 +129,15 @@ internal class CoachDashboard(private val project: Project) : Disposable {
 
     private fun nodeTooOldPanel(detected: String, required: Int): JComponent = messagePanel(
         "Node.js is too old",
-        "AI Coach needs Node.js $required or newer, but found $detected. Upgrade Node (or point Settings → " +
-            "Tools → AI Coach at a newer install), then Retry.",
+        "AI Usage Coach needs Node.js $required or newer, but found $detected. Upgrade Node (or point Settings → " +
+            "Tools → AI Usage Coach at a newer install), then Retry.",
         retry = true,
     )
 
     private fun nodeBrokenPanel(path: String, detail: String): JComponent = messagePanel(
         "Node.js could not run",
         "The Node.js at $path failed to report its version:\n\n$detail\n\nFix the installation or set a different " +
-            "path in Settings → Tools → AI Coach, then Retry.",
+            "path in Settings → Tools → AI Usage Coach, then Retry.",
         retry = true,
     )
 
