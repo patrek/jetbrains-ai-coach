@@ -23,7 +23,7 @@ jobs:
     name: Build & publish plugin zip
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # buildPlugin downloads a full IntelliJ Platform SDK, which can overflow
       # the default runner disk. Reclaim ~17 GB of preinstalled SDKs we don't
@@ -34,18 +34,18 @@ jobs:
           df -h /
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # buildPlugin bundles the sidecar (esbuild over src/ + vendor/), so the
       # vendored tree and sidecar devDependencies must be present first.
@@ -105,7 +105,7 @@ jobs:
       # Pinned to a full commit SHA: this is the only third-party action and it
       # runs with contents: write.
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2.6.2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda  # v3.0.0
         with:
           files: ai-usage-coach-${{ steps.version.outputs.version }}.zip
           name: AI Usage Coach ${{ steps.version.outputs.version }}
