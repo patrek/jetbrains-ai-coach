@@ -1,5 +1,6 @@
 package com.aicoach.jetbrains.jcef
 
+import com.aicoach.jetbrains.export.ExportSummaryHandler
 import com.aicoach.jetbrains.sidecar.SidecarService
 import com.aicoach.jetbrains.sidecar.SidecarSupervisor
 import com.aicoach.jetbrains.trust.TrustGateController
@@ -55,6 +56,7 @@ class WebviewBridge(
     private val query = JBCefJSQuery.create(browser as com.intellij.ui.jcef.JBCefBrowserBase)
     private val projectRoot: String? = project.basePath ?: project.guessProjectDir()?.path
     private val trust = TrustGateController(project, service, projectRoot)
+    private val export = ExportSummaryHandler(project, service, projectRoot)
 
     @Volatile private var connected = false
     @Volatile private var capabilities: JsonObject = JsonObject()
@@ -123,9 +125,13 @@ class WebviewBridge(
                 trust.review()
                 reply(id, ok())
             }
-            // Export lands in part 6; reserve it so an early call doesn't reach
-            // the sidecar's Unknown-method path.
-            "exportSummary" -> reply(id, JsonObject().apply { addProperty("error", "export-unavailable") })
+            // Host-owned export: fetch rendered content from the sidecar, then
+            // write via an IntelliJ directory chooser (ADR 0009 Host row).
+            "exportSummary" -> export.export(params, trust.safeMode()) { data -> reply(id, data) }
+            // Safety net: anything not intercepted above is forwarded. The sidecar
+            // answers EVERY forwarded method — a real result, a typed degrade, or a
+            // typed `Unknown method` error — so an unmapped method can never hang the
+            // webview (whose RPC timeout is 120s). Silence is never an outcome.
             else -> forwardOrQueue(Pending(id, method, params))
         }
     }

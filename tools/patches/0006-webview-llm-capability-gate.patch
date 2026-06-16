@@ -1,0 +1,98 @@
+diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
+index 3d0190f..14ed4b5 100644
+--- a/sidecar/vendor/webview/shared.ts
++++ b/sidecar/vendor/webview/shared.ts
+@@ -12,7 +12,26 @@ export const vscode = acquireVsCodeApi();
+ let rpcId = 0;
+ const RPC_TIMEOUT_MS = 120_000;
+ const RPC_LLM_TIMEOUT_MS = 300_000;
+-const LLM_METHODS = new Set(['generateRule', 'explainOccurrence']);
++// Methods that require a host LLM. In the JetBrains host (capabilities.llm ===
++// false, ADR 0006) every one degrades; the sidecar answers them with the typed
++// `llm-unavailable` error. This set both extends their RPC timeout AND gates
++// them client-side so a degraded feature shows a clear message, never a hang.
++const LLM_METHODS = new Set([
++  'generateRule', 'compileNlRule', 'explainOccurrence',
++  'createSkill', 'generateSkillContent',
++  'generateLearningQuiz', 'generateLearningResources', 'generateCodeComparison', 'generateDidYouKnow',
++  'triageSkills', 'triageCatalog', 'reviewContextFiles',
++]);
++// Friendly, MCP-pointing message surfaced wherever an LLM feature is invoked
++// while the host has no LLM — both proactively (gated before the request) and
++// reactively (translating the sidecar's `llm-unavailable`).
++const LLM_UNAVAILABLE_MESSAGE =
++  'This needs a language model, which the JetBrains plugin doesn\'t include — ' +
++  'ask Claude Code to do it directly. (Your usage analytics are available there ' +
++  'too, via the AI Engineer Coach MCP tools.)';
++// Host LLM availability, learned once via `getCapabilities`. `undefined` until
++// known — until then LLM calls fall back to the reactive error translation.
++let llmAvailable: boolean | undefined;
+ const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+ 
+ /**
+@@ -22,6 +41,12 @@ const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Err
+  */
+ export function rpc<T = unknown>(method: string, params?: Record<string, unknown>): Promise<T> {
+   return new Promise((resolve, reject) => {
++    // Gate LLM-dependent methods once the host is known to lack an LLM (D6), so
++    // the feature fails fast with a clear message instead of round-tripping.
++    if (llmAvailable === false && LLM_METHODS.has(method)) {
++      reject(new Error(LLM_UNAVAILABLE_MESSAGE));
++      return;
++    }
+     const id = String(++rpcId);
+     const timeoutMs = LLM_METHODS.has(method) ? RPC_LLM_TIMEOUT_MS : RPC_TIMEOUT_MS;
+     const timer = setTimeout(() => {
+@@ -60,7 +85,8 @@ export function initMessageListener(
+       const { resolve, reject } = pending.get(msg.id as string)!;
+       pending.delete(msg.id as string);
+       if (msg.data && typeof msg.data === 'object' && (msg.data as Record<string, unknown>).error) {
+-        reject(new Error(String((msg.data as Record<string, unknown>).error)));
++        const error = String((msg.data as Record<string, unknown>).error);
++        reject(new Error(error === 'llm-unavailable' ? LLM_UNAVAILABLE_MESSAGE : error));
+       } else {
+         resolve(msg.data);
+       }
+@@ -84,6 +110,13 @@ export function initMessageListener(
+       onDataReady(msg.currentWorkspace as string);
+     }
+   });
++
++  // Learn host capabilities once so LLM-dependent features can be gated before
++  // they ever fire a request (decision D6). Best-effort: on failure we leave
++  // availability unknown and fall back to translating `llm-unavailable`.
++  void rpc<{ llm?: boolean }>('getCapabilities')
++    .then((caps) => { llmAvailable = caps?.llm === true; })
++    .catch(() => { /* leave undefined; reactive translation still applies */ });
+ }
+ 
+ /* ---- Chart.js import (bundled via esbuild) ---- */
+diff --git a/sidecar/vendor/webview/page-learning.ts b/sidecar/vendor/webview/page-learning.ts
+index 9b287ec..3280b3e 100644
+--- a/sidecar/vendor/webview/page-learning.ts
++++ b/sidecar/vendor/webview/page-learning.ts
+@@ -552,8 +552,9 @@ async function loadDidYouKnowAsync(state: LearningState): Promise<void> {
+     }
+     saveState(state);
+     render(renderDidYouKnowHtml(facts), el);
+-  } catch {
+-    render(html`<span class="text-muted" style="font-size:11px">Could not generate tips.</span>`, el);
++  } catch (err) {
++    const msg = err instanceof Error ? err.message : 'Could not generate tips.';
++    render(html`<span class="text-muted" style="font-size:11px">${msg}</span>`, el);
+   }
+ }
+ 
+@@ -657,9 +658,10 @@ function loadResourcesAsync(state: LearningState, languages: { label: string; lo
+     state.cachedResourceKey = key;
+     saveState(state);
+     render(renderResourcesHtml(resources), el);
+-  }).catch(() => {
++  }).catch((err: unknown) => {
+     if (document.getElementById('learn-resources-container')) {
+-      render(html`<span class="text-muted" style="font-size:11px">Could not generate resources.</span>`, el);
++      const msg = err instanceof Error ? err.message : 'Could not generate resources.';
++      render(html`<span class="text-muted" style="font-size:11px">${msg}</span>`, el);
+     }
+   });
+ }

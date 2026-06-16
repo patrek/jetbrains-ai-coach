@@ -2,6 +2,7 @@ package com.aicoach.jetbrains.toolwindow
 
 import com.aicoach.jetbrains.jcef.AssetSchemeHandler
 import com.aicoach.jetbrains.jcef.WebviewBridge
+import com.aicoach.jetbrains.mcp.McpDiscoveryNotifier
 import com.aicoach.jetbrains.sidecar.NodeDetector
 import com.aicoach.jetbrains.theme.ThemeCssProvider
 import com.aicoach.jetbrains.theme.WebviewThemeSync
@@ -48,6 +49,8 @@ class CoachToolWindowFactory : ToolWindowFactory, DumbAware {
         content.isCloseable = false
         toolWindow.contentManager.addContent(content)
         dashboard.start()
+        // First-open discovery: point users at the IDE-closed MCP tools (once).
+        McpDiscoveryNotifier.maybeNotify(project)
     }
 }
 

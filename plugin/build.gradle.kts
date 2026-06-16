@@ -76,10 +76,12 @@ val buildSidecar by tasks.registering(Exec::class) {
 
 tasks.processResources {
     dependsOn(buildSidecar)
-    // Node sidecar runtime: entry, workers, and the markdown rule/metric assets.
+    // Node sidecar runtime: the IDE entry, the standalone MCP entry, the workers,
+    // and the markdown rule/metric assets. `mcp-main.js` is the IDE-closed MCP
+    // server an external client launches from `runtime/current/` (ADR 0002).
     from(sidecarDist) {
         into("sidecar")
-        include("main.js", "*-worker.js", "rules/**", "metrics/**")
+        include("main.js", "mcp-main.js", "*-worker.js", "rules/**", "metrics/**")
     }
     // Browser webview bundle served by the custom scheme handler.
     from(sidecarDist.resolve("webview")) {

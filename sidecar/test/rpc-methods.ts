@@ -89,6 +89,53 @@ export const TOKEN_GATED_METHODS: readonly string[] = [
 
 export const TOKEN_GATING_ERROR = 'Token reporting is temporarily disabled';
 
+/* ---- Extension methods (ExtensionMethodMap, 20) — disposition per ADR 0009 ---- */
+
+/** Ported to the sidecar (filesystem/network only) — must resolve to a handler. */
+export const EXTENSION_PORT_METHODS: readonly string[] = [
+  'getWorkspaceDeps',
+  'getSdlcToolAnalysis',
+  'getSdlcRepoScan',
+  'discoverCatalog',
+  'installSkill',
+  'installCatalogItem',
+];
+
+/** LLM-dependent — must degrade to `{ error: 'llm-unavailable' }`. */
+export const EXTENSION_LLM_DEGRADE_METHODS: readonly string[] = [
+  'createSkill',
+  'generateSkillContent',
+  'generateLearningQuiz',
+  'generateLearningResources',
+  'generateCodeComparison',
+  'generateDidYouKnow',
+  'triageSkills',
+  'triageCatalog',
+  'reviewContextFiles',
+];
+
+/**
+ * Owned by the Kotlin bridge (never forwarded). The sidecar deliberately does
+ * NOT serve them, so it answers with the typed `Unknown method` error — that is
+ * the safety net, not silence. (`getSdlcGitHubData` degrades to `github:false`;
+ * the webview gates on it and never calls it, but the sidecar still answers with
+ * a typed error if it ever arrives.)
+ */
+export const EXTENSION_HOST_OR_DEGRADE_METHODS: readonly string[] = [
+  'openExternal',
+  'saveModelBudgets',
+  'loadModelBudgets',
+  'exportSummary',
+  'getSdlcGitHubData',
+];
+
+/** Every extension method, for the no-method-unmapped completeness assertion. */
+export const ALL_EXTENSION_METHODS: readonly string[] = [
+  ...EXTENSION_PORT_METHODS,
+  ...EXTENSION_LLM_DEGRADE_METHODS,
+  ...EXTENSION_HOST_OR_DEGRADE_METHODS,
+];
+
 /** Minimal params for methods that guard on a required field. */
 export const PARAMS: Record<string, Record<string, unknown>> = {
   getBurndown: { config: { sku: 'pro' } },

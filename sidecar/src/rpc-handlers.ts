@@ -36,13 +36,20 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { getRpcHandler } from '../vendor/webview/panel-rpc';
-import { errorResult, isString, isNumber } from '../vendor/webview/panel-shared';
+import { getRpcHandler, validateDateFilter } from '../vendor/webview/panel-rpc';
+import { errorResult, isString, isNumber, isRecord } from '../vendor/webview/panel-shared';
+import {
+  buildSummaryExportFromAnalyzer,
+  getSummaryExportFilenames,
+  renderSummaryJson,
+  renderSummaryMarkdown,
+} from '../vendor/core/summary-export';
 import { parseRule } from '../vendor/core/rule-parser';
 import { getRule, createRuleFromMarkdown } from '../vendor/core/rule-engine';
 import { getPersonalRulesDir, getProjectRulesDir } from '../vendor/core/rule-loader';
 import { approve as approveTrust, getDefaultTrustStore } from '../vendor/core/rule-trust';
 import { ruleScope, currentPending, approvePending } from './rule-scope';
+import { SDLC_CATALOG_HANDLERS } from './sdlc-catalog';
 import type { Analyzer } from '../vendor/core/analyzer';
 import type { ParseResult } from '../vendor/core/parser';
 
@@ -191,6 +198,26 @@ const getWorkspaceDeps: SidecarHandler = (ctx) => {
   return { deps };
 };
 
+/* ---- exportSummary content (host-driven IntelliJ save flow, ADR 0009) ---- */
+//
+// `exportSummary` itself is host-owned: the Kotlin bridge intercepts the
+// webview call, runs the IntelliJ directory chooser, and writes the files. It
+// gets the file CONTENT from here via a host-originated `hostCall`. The render
+// reuses the vendored core verbatim; only the delivery (chooser vs. VS Code save
+// dialog) differs from upstream.
+
+const exportSummaryContent: SidecarHandler = (ctx) => {
+  const filter = isRecord(ctx.params?.filter) ? validateDateFilter(ctx.params.filter) : undefined;
+  const report = buildSummaryExportFromAnalyzer(ctx.analyzer, filter);
+  const names = getSummaryExportFilenames(report.generatedAt);
+  return {
+    files: [
+      { filename: names.markdown, content: renderSummaryMarkdown(report) },
+      { filename: names.json, content: renderSummaryJson(report) },
+    ],
+  };
+};
+
 /* ---- Resolution ---- */
 
 /* ---- Trust gate (per-request project rule scoping) ---- */
@@ -220,6 +247,9 @@ const OVERRIDES: Record<string, SidecarHandler> = {
   getLocalRulesPending,
   approveLocalRules,
   reloadLocalRules,
+  exportSummaryContent,
+  // SDLC + community-catalog ports (ADR 0009 "Port (part 6)").
+  ...SDLC_CATALOG_HANDLERS,
 };
 
 /**

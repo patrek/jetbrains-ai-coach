@@ -262,3 +262,122 @@ Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated
 | 15:38 | Edited sidecar/test/trust-gate.test.ts | expanded (+7 lines) | ~407 |
 | 15:38 | Session end: 67 writes across 22 files (SidecarSupervisor.kt, TrustStoreService.kt, TrustStoreServiceTest.kt, rule-scope.ts, rpc-handlers.ts) | 43 reads | ~137772 tok |
 | 15:40 | Session end: 67 writes across 22 files (SidecarSupervisor.kt, TrustStoreService.kt, TrustStoreServiceTest.kt, rule-scope.ts, rpc-handlers.ts) | 43 reads | ~137772 tok |
+| 15:52 | Session end: 4 writes across 4 files (2026-06-11-feat-jetbrains-ide-plugin-port-part-3-plan.md, ci.yml, parser.ts, parser-main.test.ts) | 7 reads | ~25778 tok |
+
+## Session: 2026-06-15 15:52
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:14 | Edited tools/upstream.lock | 4→5 lines | ~37 |
+| 16:14 | Edited sidecar/package.json | 2→3 lines | ~25 |
+| 16:17 | Created sidecar/src/mcp-tools.ts | — | ~2947 |
+
+## Session: 2026-06-15 16:18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:26 | Created sidecar/src/mcp-server.ts | — | ~1588 |
+| 16:26 | Created sidecar/src/mcp-main.ts | — | ~397 |
+| 16:29 | Edited sidecar/src/mcp-server.ts | modified getAnalyzer() | ~185 |
+| 16:29 | Edited sidecar/src/mcp-server.ts | modified createMcpServer() | ~40 |
+| 16:29 | Created sidecar/src/mcp-tools.test.ts | — | ~715 |
+| 16:29 | Created sidecar/test/mcp-server.test.ts | — | ~760 |
+| 16:32 | part6: MCP stdio server (12 tools) + headless e2e verified | sidecar/src/mcp-*.ts, vendor/mcp/* | 12 tests pass | ~30k |
+| 16:33 | Created ../copilot-code-warp/scripts/should-use-structured.sh | — | ~376 |
+| 16:33 | Created ../copilot-code-warp/scripts/build-payload.sh | — | ~442 |
+| 16:33 | Created ../copilot-code-warp/scripts/warp-notify.sh | — | ~254 |
+| 16:33 | Created ../copilot-code-warp/scripts/on-notification.sh | — | ~485 |
+| 16:34 | Created ../copilot-code-warp/hooks/hooks.json | — | ~56 |
+| 16:34 | Created ../copilot-code-warp/install.sh | — | ~228 |
+| 16:34 | Created sidecar/src/sdlc-catalog.ts | — | ~3431 |
+| 16:35 | Edited sidecar/src/sdlc-catalog.ts | 2→2 lines | ~33 |
+| 16:35 | Edited sidecar/src/sdlc-catalog.ts | 6→3 lines | ~12 |
+| 16:35 | Edited sidecar/src/rpc-handlers.ts | added 1 import(s) | ~54 |
+| 16:35 | Edited sidecar/src/rpc-handlers.ts | 8→10 lines | ~98 |
+| 16:36 | Created ../copilot-code-warp/README.md | — | ~935 |
+| 16:36 | Created ../copilot-code-warp/LICENSE | — | ~286 |
+| 16:37 | Created sidecar/src/sdlc-catalog.test.ts | — | ~1878 |
+| 16:38 | part6: ported 5 SDLC/catalog methods to sidecar (ADR 0009) | sidecar/src/sdlc-catalog.ts | 9 tests pass | ~12k |
+| 16:40 | Session end: 20 writes across 15 files (mcp-server.ts, mcp-main.ts, mcp-tools.test.ts, mcp-server.test.ts, should-use-structured.sh) | 3 reads | ~34748 tok |
+| 16:41 | Edited sidecar/src/rpc-handlers.ts | expanded (+6 lines) | ~95 |
+| 16:41 | Edited sidecar/src/rpc-handlers.ts | added optional chaining | ~267 |
+| 16:42 | Edited sidecar/src/rpc-handlers.ts | 6→7 lines | ~53 |
+| 16:43 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/export/ExportSummaryHandler.kt | — | ~1937 |
+| 16:43 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | added 1 import(s) | ~59 |
+| 16:43 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 1→2 lines | ~41 |
+| 16:43 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 3→3 lines | ~68 |
+| 16:43 | Created sidecar/src/export-summary.test.ts | — | ~394 |
+| 16:43 | Created plugin/src/test/kotlin/com/aicoach/jetbrains/export/ExportSummaryParsingTest.kt | — | ~475 |
+| 16:48 | part6: export flow (sidecar exportSummaryContent + ExportSummaryHandler.kt chooser) | rpc-handlers.ts, export/ | kotlin+ts compile & tests pass | ~14k |
+| 16:50 | Session end: 29 writes across 19 files (mcp-server.ts, mcp-main.ts, mcp-tools.test.ts, mcp-server.test.ts, should-use-structured.sh) | 6 reads | ~41963 tok |
+| 16:52 | Created ../copilot-code-warp/plugin.json | — | ~94 |
+| 16:53 | Created ../copilot-code-warp/hooks.json | — | ~52 |
+| 16:56 | Edited ../copilot-code-warp/README.md | expanded (+7 lines) | ~968 |
+| 16:59 | Created ../copilot-code-warp/.github/copilot-instructions.md | — | ~1061 |
+| 16:59 | Session end: 33 writes across 21 files (mcp-server.ts, mcp-main.ts, mcp-tools.test.ts, mcp-server.test.ts, should-use-structured.sh) | 19 reads | ~123000 tok |
+| 17:02 | Edited sidecar/vendor/webview/shared.ts | expanded (+18 lines) | ~397 |
+| 17:02 | Edited sidecar/vendor/webview/shared.ts | added 1 condition(s) | ~132 |
+| 17:02 | Edited sidecar/vendor/webview/shared.ts | 5→6 lines | ~90 |
+| 17:02 | Edited sidecar/vendor/webview/shared.ts | added optional chaining | ~150 |
+| 23:28 | Edited tools/patches/README.md | 1→2 lines | ~250 |
+| 23:28 | Created docs/llm-degradation-audit.md | — | ~870 |
+| 08:35 | part6: webview LLM capability gate (patch 0006) + per-page audit doc | shared.ts, patches/0006, docs/llm-degradation-audit.md | patch round-trips, 36 webview tests pass | ~10k |
+| 08:46 | Edited sidecar/test/rpc-methods.ts | expanded (+47 lines) | ~470 |
+| 08:47 | Created sidecar/test/disposition-sweep.test.ts | — | ~942 |
+| 08:47 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/jcef/WebviewBridge.kt | 2→6 lines | ~134 |
+| 09:05 | Edited plugin/build.gradle.kts | modified from() | ~101 |
+| 09:05 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | expanded (+8 lines) | ~258 |
+| 09:06 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | 2→2 lines | ~54 |
+| 09:06 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | modified versionDir() | ~132 |
+| 09:06 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/sidecar/SidecarRuntime.kt | added 3 condition(s) | ~650 |
+| 09:07 | Created plugin/src/main/kotlin/com/aicoach/jetbrains/mcp/McpDiscoveryNotifier.kt | — | ~605 |
+| 09:07 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/CoachToolWindowFactory.kt | added 1 import(s) | ~55 |
+| 09:07 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/toolwindow/CoachToolWindowFactory.kt | 4→6 lines | ~59 |
+| 09:07 | Edited README.md | expanded (+34 lines) | ~371 |
+| 09:08 | Created docs/link-out-audit.md | — | ~431 |
+| 09:09 | part6: disposition sweep test, runtime/current mirror, MCP discovery balloon, setup docs, link-out audit | SidecarRuntime.kt, McpDiscoveryNotifier.kt, README, docs/ | compiles | ~16k |
+
+## Session: 2026-06-16 09:16
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:19 | Edited docs/reviews/code-simplicity-review.md | inline fix | ~21 |
+| 09:20 | Created docs/reviews/code-simplicity-review.md | — | ~2601 |
+| 09:23 | Created docs/reviews/test-quality-review-part6.md | — | ~4976 |
+| 09:23 | Created docs/reviews/architecture-review.md | — | ~3693 |
+| 09:41 | Created docs/reviews/vgv-review.md | — | ~3125 |
+| 16:45 | PR readiness review part 6 — all checks pass, ready to merge | docs/reviews/pr-readiness-review-part6.md | READY_TO_MERGE | 12K |
+| 10:02 | Edited sidecar/src/sdlc-catalog.ts | added 1 import(s) | ~71 |
+| 10:02 | Edited sidecar/src/sdlc-catalog.ts | modified homeDir() | ~23 |
+| 10:02 | Edited sidecar/src/sdlc-catalog.ts | 4→4 lines | ~51 |
+| 10:02 | Edited sidecar/src/sdlc-catalog.ts | modified resolveWorkspaceRoot() | ~134 |
+| 10:02 | Edited sidecar/src/sdlc-catalog.ts | 4→7 lines | ~137 |
+| 10:02 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/mcp/McpDiscoveryNotifier.kt | 6→8 lines | ~123 |
+| 10:03 | Edited sidecar/src/sdlc-catalog.test.ts | modified textResponse() | ~176 |
+| 10:04 | Edited sidecar/src/sdlc-catalog.test.ts | modified for() | ~763 |
+| 10:08 | part6: quality review (5 agents, 0 critical), fixes applied, shipped PR #7 | branch feat/jetbrains-part-6 | 1213 sidecar + plugin tests pass | ~20k |
+| 10:08 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:10 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:14 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:16 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:23 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 45 reads | ~91876 tok |
+| 10:27 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:29 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:31 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:40 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:41 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:42 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:46 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 50 reads | ~93041 tok |
+| 10:49 | Edited sidecar/vendor/webview/shared.ts | 3→4 lines | ~70 |
+| 10:51 | Edited docs/llm-degradation-audit.md | expanded (+10 lines) | ~179 |
+| 10:51 | Edited docs/llm-degradation-audit.md | "available via MCP" → "ask Claude Code directly" | ~22 |
+| 10:51 | Edited tools/patches/README.md | inline fix | ~73 |
+| 10:52 | Session end: 17 writes across 10 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 50 reads | ~93404 tok |
+| 10:55 | Edited sidecar/vendor/webview/page-learning.ts | modified catch() | ~67 |
+| 10:55 | Edited sidecar/vendor/webview/page-learning.ts | 5→6 lines | ~81 |
+| 10:59 | Created ../../../../../tmp/genpatch.mjs | — | ~445 |
+| 11:00 | Edited ../../../../../tmp/genpatch.mjs | 3→4 lines | ~60 |
+| 11:03 | Session end: 21 writes across 12 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 51 reads | ~105846 tok |
+
+## Session summary (part 6, 2026-06-16)
+Shipped PR #7 (feat/jetbrains-part-6): MCP stdio server (12 pinned tools, cache-first, headless trust), SDLC/catalog ports, host-owned export via IntelliJ chooser, LLM degradation (single sanctioned webview patch 0006), unknown-method safety net + disposition sweep, runtime/current mirror, discovery balloon, setup docs, link-out audit. Both suites green (sidecar 1213, plugin Kotlin). 5-agent review: 0 critical. Verified #1 (headless MCP returns real analytics — 174 sessions) and #3 (LLM degradation message) in the live IDE. Follow-up commits: reworded degradation message (analytics→MCP vs generation→ask Claude Code) and extended patch 0006 to make Learning tips/resources show it too. Deferred to part 7: Retry button on dead LLM features, bug-060 (JBR-25 runIde launch hiccup).

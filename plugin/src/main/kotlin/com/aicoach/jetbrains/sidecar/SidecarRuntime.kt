@@ -13,21 +13,29 @@ import java.util.zip.ZipFile
  * The plugin ships the sidecar bundle inside its JAR (under `/sidecar`); Node can't
  * run code from inside a JAR, so it is extracted to a **version-stamped** dir
  * under the user home. Version-stamping means a plugin update never launches a
- * stale bundle. Part 3 launches the extracted `main.js` directly; the stable
- * `runtime/current` indirection is deferred to part 5 (its only consumer, the
- * MCP external config, doesn't exist yet).
+ * stale bundle. Part 3 launches the extracted `main.js` directly.
+ *
+ * The stable `runtime/current/` mirror (part 6) is what the standalone MCP
+ * server's external client config points at
+ * (`node ~/.ai-coach-jetbrains/runtime/current/mcp-main.js`, ADR 0002). It is a
+ * plain copy of the active version dir — not a symlink, so it works on Windows
+ * without the symlink privilege and with the IDE closed. It is refreshed
+ * (guarded by the same bundle fingerprint) on every extraction, so a plugin
+ * update transparently re-points `current` at the new bundle while the client
+ * config path never changes.
  *
  *   ~/.ai-coach-jetbrains/
  *     logs/sidecar.log              # stderr + supervisor notes
  *     runtime/sidecar.pid           # last sidecar pid (stale-orphan sweep)
  *     runtime/<pluginVersion>/      # extracted main.js + workers + rules/ + metrics/
+ *     runtime/current/              # mirror of the active version dir (MCP config target)
  */
 object SidecarRuntime {
 
     private val log = logger<SidecarRuntime>()
 
     /** Files that must be present for an extraction to count as complete. */
-    private val REQUIRED = listOf("main.js", "parse-worker.js", "warm-up-worker.js", "cache-write-worker.js")
+    private val REQUIRED = listOf("main.js", "mcp-main.js", "parse-worker.js", "warm-up-worker.js", "cache-write-worker.js")
 
     /** Stores the SHA-256 of the bundled main.js the extraction was made from. */
     private const val FINGERPRINT_FILE = ".bundle-hash"
@@ -36,6 +44,12 @@ object SidecarRuntime {
     val logFile: Path = baseDir.resolve("logs/sidecar.log")
     private val runtimeBase: Path = baseDir.resolve("runtime")
     private val pidFile: Path = runtimeBase.resolve("sidecar.pid")
+
+    /** Stable mirror of the active version dir; the MCP client config target. */
+    val currentDir: Path = runtimeBase.resolve("current")
+
+    /** The standalone MCP server entry the external client launches. */
+    val mcpMainPath: Path = currentDir.resolve("mcp-main.js")
 
     fun versionDir(pluginVersion: String): Path = runtimeBase.resolve(pluginVersion)
 
@@ -59,7 +73,10 @@ object SidecarRuntime {
         val fingerprint = bundleFingerprint()
         val upToDate = isComplete(target) &&
             runCatching { Files.readString(stamp).trim() == fingerprint }.getOrDefault(false)
-        if (upToDate) return mainJs
+        if (upToDate) {
+            mirrorToCurrent(target, fingerprint)
+            return mainJs
+        }
 
         Files.createDirectories(target)
         Files.createDirectories(logFile.parent)
@@ -69,7 +86,48 @@ object SidecarRuntime {
         }
         runCatching { Files.writeString(stamp, fingerprint) }
             .onFailure { log.warn("Could not write bundle fingerprint", it) }
+        mirrorToCurrent(target, fingerprint)
         return mainJs
+    }
+
+    /**
+     * Refresh `runtime/current/` to mirror [source] so the external MCP config
+     * path stays valid across plugin updates. Guarded by the bundle [fingerprint]
+     * (stored in `current/.bundle-hash`) so it copies only when the bundle
+     * changed. Best-effort: a failure here never blocks the IDE sidecar launch —
+     * only the IDE-closed MCP path would be briefly stale until the next start.
+     */
+    private fun mirrorToCurrent(source: Path, fingerprint: String) {
+        val stamp = currentDir.resolve(FINGERPRINT_FILE)
+        val upToDate = isComplete(currentDir) &&
+            runCatching { Files.readString(stamp).trim() == fingerprint }.getOrDefault(false)
+        if (upToDate) return
+
+        runCatching {
+            if (Files.exists(currentDir)) deleteRecursively(currentDir)
+            copyDir(source, currentDir)
+            Files.writeString(stamp, fingerprint)
+        }.onFailure { log.warn("Could not refresh runtime/current mirror", it) }
+    }
+
+    private fun copyDir(source: Path, dest: Path) {
+        Files.walk(source).use { stream ->
+            stream.forEach { src ->
+                val target = dest.resolve(source.relativize(src).toString())
+                if (Files.isDirectory(src)) {
+                    Files.createDirectories(target)
+                } else {
+                    Files.createDirectories(target.parent)
+                    Files.copy(src, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
+        }
+    }
+
+    private fun deleteRecursively(dir: Path) {
+        Files.walk(dir).use { stream ->
+            stream.sorted(Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) }
+        }
     }
 
     private fun isComplete(dir: Path): Boolean = REQUIRED.all { Files.isRegularFile(dir.resolve(it)) }
