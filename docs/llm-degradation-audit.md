@@ -20,8 +20,18 @@ keeping the vendored webview at ~one small divergence:
   `llm-unavailable` reply is translated into the same message at the response
   boundary.
 
-The message points the user to the MCP tools in Claude Code, which expose the
-same analytics with the IDE closed.
+The message tells the user to ask Claude Code to do it directly (these are
+LLM-*generation* features — quizzes, "Slop or Not", rule/skill generation — with
+no MCP-tool equivalent), and notes that their usage *analytics* are available
+there too via the MCP tools. The exact text:
+
+> This needs a language model, which the JetBrains plugin doesn't include — ask
+> Claude Code to do it directly. (Your usage analytics are available there too,
+> via the AI Engineer Coach MCP tools.)
+
+This distinction matters: the 12 `aiEngineerCoach_*` MCP tools are read-only
+analytics; they do **not** generate quizzes or rules, so the message must not
+imply "run this via an MCP tool".
 
 ## Per-page disposition
 
@@ -52,5 +62,5 @@ functional in the sidecar (ADR 0009). Only the LLM *ranking* of catalog items
 ## Acceptance
 
 Exercising every nav-registry page with `llm:false` produces zero hung spinners,
-and every LLM entry point either shows the "available via MCP" message or
+and every LLM entry point either shows the "ask Claude Code directly" message or
 silently skips a background enrichment — verified against the disposition above.

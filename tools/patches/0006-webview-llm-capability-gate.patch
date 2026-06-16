@@ -1,8 +1,8 @@
 diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
-index 3d0190f..f423b79 100644
+index 3d0190f..14ed4b5 100644
 --- a/sidecar/vendor/webview/shared.ts
 +++ b/sidecar/vendor/webview/shared.ts
-@@ -12,7 +12,25 @@ export const vscode = acquireVsCodeApi();
+@@ -12,7 +12,26 @@ export const vscode = acquireVsCodeApi();
  let rpcId = 0;
  const RPC_TIMEOUT_MS = 120_000;
  const RPC_LLM_TIMEOUT_MS = 300_000;
@@ -21,15 +21,16 @@ index 3d0190f..f423b79 100644
 +// while the host has no LLM — both proactively (gated before the request) and
 +// reactively (translating the sidecar's `llm-unavailable`).
 +const LLM_UNAVAILABLE_MESSAGE =
-+  'This AI feature runs in Claude Code, not the JetBrains plugin. ' +
-+  'Use the AI Engineer Coach MCP tools (aiEngineerCoach_*) in Claude Code instead.';
++  'This needs a language model, which the JetBrains plugin doesn\'t include — ' +
++  'ask Claude Code to do it directly. (Your usage analytics are available there ' +
++  'too, via the AI Engineer Coach MCP tools.)';
 +// Host LLM availability, learned once via `getCapabilities`. `undefined` until
 +// known — until then LLM calls fall back to the reactive error translation.
 +let llmAvailable: boolean | undefined;
  const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
  
  /**
-@@ -22,6 +40,12 @@ const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Err
+@@ -22,6 +41,12 @@ const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Err
   */
  export function rpc<T = unknown>(method: string, params?: Record<string, unknown>): Promise<T> {
    return new Promise((resolve, reject) => {
@@ -42,7 +43,7 @@ index 3d0190f..f423b79 100644
      const id = String(++rpcId);
      const timeoutMs = LLM_METHODS.has(method) ? RPC_LLM_TIMEOUT_MS : RPC_TIMEOUT_MS;
      const timer = setTimeout(() => {
-@@ -60,7 +84,8 @@ export function initMessageListener(
+@@ -60,7 +85,8 @@ export function initMessageListener(
        const { resolve, reject } = pending.get(msg.id as string)!;
        pending.delete(msg.id as string);
        if (msg.data && typeof msg.data === 'object' && (msg.data as Record<string, unknown>).error) {
@@ -52,7 +53,7 @@ index 3d0190f..f423b79 100644
        } else {
          resolve(msg.data);
        }
-@@ -84,6 +109,13 @@ export function initMessageListener(
+@@ -84,6 +110,13 @@ export function initMessageListener(
        onDataReady(msg.currentWorkspace as string);
      }
    });
