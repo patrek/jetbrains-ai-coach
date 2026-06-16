@@ -1,7 +1,11 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-16T14:04:04.344Z
-> Files: 357 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-16T15:00:34.355Z
+> Files: 358 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../../tmp/
+
+- `genpatch.mjs` — REPO: git (~472 tok)
 
 ## ../../../../../tmp/p2gen/sidecar/vendor/core/
 
@@ -101,7 +105,7 @@
 ## docs/
 
 - `link-out-audit.md` — Link-out audit (~404 tok)
-- `llm-degradation-audit.md` — LLM degradation — per-page audit (~816 tok)
+- `llm-degradation-audit.md` — LLM degradation — per-page audit (~956 tok)
 
 ## docs/ADR/
 
@@ -482,7 +486,7 @@
 - `page-learning-state.ts` — Exports ConceptDef, DEFAULT_CONCEPTS, EXCLUDED_LANGS, normalizeLang + 21 more (~2992 tok)
 - `page-learning-templates.test.ts` — Serialize VNodes (or arrays of VNodes) to an HTML string for assertion. (~869 tok)
 - `page-learning-templates.ts` — Exports renderResourcesHtml, renderCodeReviewRound, renderDidYouKnowHtml, renderQuiz (~1423 tok)
-- `page-learning.ts` — generateQuizCached: updateSidebar, updateStats, buildLearningMarkup (~11753 tok)
+- `page-learning.ts` — generateQuizCached: updateSidebar, updateStats, buildLearningMarkup (~11794 tok)
 - `page-output.ts` — Exports renderOutput (~12365 tok)
 - `page-patterns.ts` — Maps a 0-1 intensity to a flame gradient: (~6239 tok)
 - `page-peers.ts` — Exports renderShareCard (~4366 tok)
@@ -504,7 +508,7 @@
 - `panel-sidebar.ts` — Exports DashboardSidebarProvider (~893 tok)
 - `panel.ts` — Exports DashboardPanel (~4123 tok)
 - `render.ts` — Secure rendering layer using Preact + htm. (~1328 tok)
-- `shared.ts` — Send a typed RPC call. Pass the expected result type as the generic, e.g. (~5353 tok)
+- `shared.ts` — Send a typed RPC call. Pass the expected result type as the generic, e.g. (~5370 tok)
 - `skill-cache.ts` — Store results scoped to the current filter (~458 tok)
 - `styles-learning.css` — Styles: 120 rules, 1 animations (~5375 tok)
 - `styles-pages.css` — Styles: 130 rules, 1 media queries (~17208 tok)
@@ -529,4 +533,4 @@
 - `0001-cache-dir-and-atomic-writes.patch` — Exports CacheData (~674 tok)
 - `0002-findlogsdirs-drop-vscode-xcode.patch` — Exports findLogsDirs (~493 tok)
 - `0003-panel-shared-type-only-vscode.patch` — Exports RequestMessage (~137 tok)
-- `README.md` — Project documentation (~883 tok)
+- `README.md` — Project documentation (~902 tok)

@@ -355,3 +355,29 @@ Resolved the part-3 dashboard render blocker and follow-on issues; PR #4 updated
 | 10:02 | Edited plugin/src/main/kotlin/com/aicoach/jetbrains/mcp/McpDiscoveryNotifier.kt | 6→8 lines | ~123 |
 | 10:03 | Edited sidecar/src/sdlc-catalog.test.ts | modified textResponse() | ~176 |
 | 10:04 | Edited sidecar/src/sdlc-catalog.test.ts | modified for() | ~763 |
+| 10:08 | part6: quality review (5 agents, 0 critical), fixes applied, shipped PR #7 | branch feat/jetbrains-part-6 | 1213 sidecar + plugin tests pass | ~20k |
+| 10:08 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:10 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:14 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:16 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 43 reads | ~91212 tok |
+| 10:23 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 45 reads | ~91876 tok |
+| 10:27 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:29 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:31 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 46 reads | ~91876 tok |
+| 10:40 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:41 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:42 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 49 reads | ~91876 tok |
+| 10:46 | Session end: 13 writes across 7 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 50 reads | ~93041 tok |
+| 10:49 | Edited sidecar/vendor/webview/shared.ts | 3→4 lines | ~70 |
+| 10:51 | Edited docs/llm-degradation-audit.md | expanded (+10 lines) | ~179 |
+| 10:51 | Edited docs/llm-degradation-audit.md | "available via MCP" → "ask Claude Code directly" | ~22 |
+| 10:51 | Edited tools/patches/README.md | inline fix | ~73 |
+| 10:52 | Session end: 17 writes across 10 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 50 reads | ~93404 tok |
+| 10:55 | Edited sidecar/vendor/webview/page-learning.ts | modified catch() | ~67 |
+| 10:55 | Edited sidecar/vendor/webview/page-learning.ts | 5→6 lines | ~81 |
+| 10:59 | Created ../../../../../tmp/genpatch.mjs | — | ~445 |
+| 11:00 | Edited ../../../../../tmp/genpatch.mjs | 3→4 lines | ~60 |
+| 11:03 | Session end: 21 writes across 12 files (code-simplicity-review.md, test-quality-review-part6.md, architecture-review.md, vgv-review.md, sdlc-catalog.ts) | 51 reads | ~105846 tok |
+
+## Session summary (part 6, 2026-06-16)
+Shipped PR #7 (feat/jetbrains-part-6): MCP stdio server (12 pinned tools, cache-first, headless trust), SDLC/catalog ports, host-owned export via IntelliJ chooser, LLM degradation (single sanctioned webview patch 0006), unknown-method safety net + disposition sweep, runtime/current mirror, discovery balloon, setup docs, link-out audit. Both suites green (sidecar 1213, plugin Kotlin). 5-agent review: 0 critical. Verified #1 (headless MCP returns real analytics — 174 sessions) and #3 (LLM degradation message) in the live IDE. Follow-up commits: reworded degradation message (analytics→MCP vs generation→ask Claude Code) and extended patch 0006 to make Learning tips/resources show it too. Deferred to part 7: Retry button on dead LLM features, bug-060 (JBR-25 runIde launch hiccup).
