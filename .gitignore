@@ -24,5 +24,7 @@ tools/.upstream-cache/
 .DS_Store
 .agentbridge/
 
-# OpenWolf local agent state (context management, hooks, logs)
-.wolf/
+# OpenWolf local agent state (hooks, logs, memory, ledger) — keep only the
+# shared protocol doc (OPENWOLF.md), which CLAUDE.md imports.
+.wolf/*
+!.wolf/OPENWOLF.md
