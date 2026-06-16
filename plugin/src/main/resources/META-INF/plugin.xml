@@ -1,15 +1,17 @@
 <idea-plugin>
     <id>com.aicoach.jetbrains</id>
-    <name>AI Coach</name>
-    <vendor url="https://github.com/patrek/ai-coach-jetbrains">AI Coach</vendor>
+    <name>AI Usage Coach</name>
+    <vendor url="https://github.com/patrek/ai-coach-jetbrains">AI Usage Coach</vendor>
 
     <description><![CDATA[
         Analyze your AI coding assistant usage across Claude Code, Codex CLI, OpenCode,
-        and Copilot CLI. Read-only, zero telemetry.<br/>
+        and Copilot CLI. Read-only, local-only, zero telemetry.<br/>
         <br/>
         JetBrains IDE port of the
         <a href="https://github.com/microsoft/AI-Engineering-Coach">AI Engineering Coach</a>
-        VS Code extension.
+        VS Code extension.<br/>
+        <br/>
+        Requires Node.js 20 or newer. Remote development (Gateway) is not supported in v1.
     ]]></description>
 
     <!-- Depend only on the platform module so the plugin installs in every
@@ -20,7 +22,7 @@
         <!-- The dashboard tool window. Lazy: the factory only builds JCEF when
              the window is first shown (DumbAware so it opens during indexing). -->
         <toolWindow
-            id="AI Coach"
+            id="AI Usage Coach"
             anchor="right"
             icon="/icons/coach.svg"
             factoryClass="com.aicoach.jetbrains.toolwindow.CoachToolWindowFactory"/>
@@ -29,18 +31,39 @@
         <applicationService
             serviceImplementation="com.aicoach.jetbrains.sidecar.SidecarService"/>
 
-        <!-- Persisted Node path override (part 3 settings scope). -->
+        <!-- Persisted settings: Node path override + scanned-directory exclusions. -->
         <applicationService
             serviceImplementation="com.aicoach.jetbrains.settings.CoachSettings"/>
         <applicationConfigurable
             parentId="tools"
             id="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"
-            displayName="AI Coach"
+            displayName="AI Usage Coach"
             instance="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"/>
 
+        <!-- General notifications (MCP discovery, summary export, first-run
+             data-access disclosure). Registered so the balloons actually fire. -->
+        <notificationGroup
+            id="AI Usage Coach"
+            displayType="BALLOON"/>
+        <!-- Sticky disclosure must not auto-dismiss before the user reads it. -->
+        <notificationGroup
+            id="AI Usage Coach Disclosure"
+            displayType="STICKY_BALLOON"/>
         <!-- Balloon notifying the user that local rules are pending trust review. -->
         <notificationGroup
-            id="AI Coach Trust"
+            id="AI Usage Coach Trust"
             displayType="BALLOON"/>
     </extensions>
+
+    <actions>
+        <!-- Bundles the sidecar log, Node detection results, and environment into
+             a single report for bug reports. Lives under Help. -->
+        <action
+            id="com.aicoach.jetbrains.troubleshooting.CollectTroubleshootingInfoAction"
+            class="com.aicoach.jetbrains.troubleshooting.CollectTroubleshootingInfoAction"
+            text="Collect AI Usage Coach Troubleshooting Info"
+            description="Gather the sidecar log, Node detection results, and environment for a bug report.">
+            <add-to-group group-id="HelpMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>

@@ -84,7 +84,7 @@ class WebviewBridge(
         service.register(this)
         trust.start()
         connectTimeout = AppExecutorUtil.getAppScheduledExecutorService().schedule(
-            { if (!connected) onConnectionError("Could not connect to the AI Coach sidecar within ${CONNECT_TIMEOUT_MS / 1000}s.") },
+            { if (!connected) onConnectionError("Could not connect to the AI Usage Coach sidecar within ${CONNECT_TIMEOUT_MS / 1000}s.") },
             CONNECT_TIMEOUT_MS,
             TimeUnit.MILLISECONDS,
         )

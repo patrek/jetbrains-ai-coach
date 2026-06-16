@@ -23,7 +23,7 @@ import java.awt.datatransfer.StringSelection
 object McpDiscoveryNotifier {
 
     private const val SHOWN_KEY = "aicoach.mcp.discoveryShown"
-    private const val GROUP_ID = "AI Coach"
+    private const val GROUP_ID = "AI Usage Coach"
 
     /** The command users paste into a terminal to register the MCP server. */
     fun setupCommand(): String = "claude mcp add aicoach -- node ${SidecarRuntime.mcpMainPath}"
@@ -37,7 +37,7 @@ object McpDiscoveryNotifier {
         val group = NotificationGroupManager.getInstance().getNotificationGroup(GROUP_ID) ?: return
         props.setValue(SHOWN_KEY, true)
         val notification = group.createNotification(
-            "AI Coach analytics in Claude Code",
+            "AI Usage Coach analytics in Claude Code",
             "The same analytics are available as MCP tools in Claude Code — even with the IDE closed. " +
                 "Run the setup command in a terminal to register them.",
             NotificationType.INFORMATION,

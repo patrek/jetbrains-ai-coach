@@ -18,12 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The IntelliJ Plugin Verifier downloads full IDE distributions, which
-      # overflow the default runner disk (verifyPlugin gets disk-killed with no
-      # log). Reclaim ~17 GB of preinstalled SDKs we don't use.
+      # The IntelliJ Plugin Verifier downloads a full IDE distribution per
+      # verified product (5: IDEA, PyCharm, WebStorm, GoLand, Rider), which
+      # overflows the default runner disk (verifyPlugin gets disk-killed with no
+      # log). Reclaim ~25 GB of preinstalled SDKs and toolchains we don't use.
       - name: Free disk space
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/share/swift /usr/local/.ghcup
+          sudo rm -rf /opt/hostedtoolcache
+          sudo apt-get clean
           df -h /
 
       - name: Set up JDK 21

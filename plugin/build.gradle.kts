@@ -35,12 +35,34 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            // Pin explicit STABLE releases (no EAP) so the gate is deterministic
-            // and fast. Covers the acceptance criterion — IDEA plus one non-IDEA
-            // IDE — exercising the platform-only dependency on both.
+            // Pin explicit STABLE releases (no EAP) so the gate is deterministic.
+            // The full 5-product matrix proves the platform-only dependency across
+            // every target IDE (IDEA, PyCharm, WebStorm, GoLand, Rider). The
+            // verifier downloads full IDE distributions, so CI must free disk
+            // first (see .github/workflows/ci.yml).
             create(IntelliJPlatformType.IntellijIdeaCommunity, "2024.2.5")
             create(IntelliJPlatformType.PyCharmCommunity, "2024.2.5")
+            create(IntelliJPlatformType.WebStorm, "2024.2.5")
+            create(IntelliJPlatformType.GoLand, "2024.2.5")
+            create(IntelliJPlatformType.Rider, "2024.2.5")
         }
+    }
+
+    // Marketplace signing & publishing. Credentials are supplied via environment
+    // variables (CI secrets) — never committed. With them unset, `buildPlugin`
+    // still works; only `signPlugin`/`publishPlugin` require them.
+    //   CERTIFICATE_CHAIN      PEM chain for the signing certificate
+    //   PRIVATE_KEY            PEM-encoded private key
+    //   PRIVATE_KEY_PASSWORD   password protecting the private key
+    //   PUBLISH_TOKEN          JetBrains Marketplace personal access token
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
     }
 }
 
@@ -57,7 +79,7 @@ kotlin {
 // gitignored); the JAR is the single source of truth at runtime:
 //   - `sidecar/*`  is extracted by SidecarService to runtime/<version>/ and run.
 //   - `webview/*`  is served to JCEF by AssetSchemeHandler (alongside the
-//                  committed index.html / bootstrap.js / test-harness.html).
+//                  committed index.html / bootstrap.js).
 //
 // `buildSidecar` runs the bundler; `processResources` folds its output in. It
 // is wired into resource processing (jar/buildPlugin), not compileKotlin, so a
