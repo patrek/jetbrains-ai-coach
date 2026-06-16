@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 0.1.0). Produces a DRAFT release."
+        required: true
+
+# Only the release job needs to create the Release and upload assets.
+permissions:
+  contents: write
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Build & publish plugin zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # buildPlugin bundles the sidecar (esbuild over src/ + vendor/), so the
+      # vendored tree and sidecar devDependencies must be present first.
+      - name: Sync upstream (populate sidecar/vendor)
+        run: node tools/sync-upstream.mjs --skip-tests
+
+      - name: Install sidecar dependencies
+        working-directory: sidecar
+        run: npm ci
+
+      # Tag push: strip leading "v" from the ref. workflow_dispatch: use the input.
+      # Guard the result so a malformed tag never produces a release.
+      # Untrusted input flows through env (never inline ${{ }} in run:) to keep
+      # the dispatch input off the shell command line.
+      - name: Derive version
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="$DISPATCH_VERSION"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$'; then
+            echo "::error::Invalid version '$VERSION' (expected X.Y.Z or X.Y.Z-suffix)"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Prerelease iff a SemVer pre-release suffix is present (e.g. -rc.1).
+          if echo "$VERSION" | grep -q '-'; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Fast safety gate first: platform-free unit tests (seconds, no IDE
+      # download) fail fast before the heavier buildPlugin. The 5-IDE
+      # verifyPlugin matrix already ran when this commit merged to main.
+      - name: Run plugin tests
+        run: ./gradlew :plugin:test
+
+      # -Pversion overrides project.version, which patchPluginXml stamps into
+      # plugin.xml — so the built manifest version matches the tag.
+      - name: Build plugin
+        run: ./gradlew :plugin:buildPlugin -Pversion=${{ steps.version.outputs.version }}
+
+      # buildPlugin emits plugin-<version>.zip (base name = Gradle project name).
+      # Copy to a clean public filename. ASSET is defined once and reused below.
+      - name: Stage release asset
+        env:
+          ASSET: ai-usage-coach-${{ steps.version.outputs.version }}.zip
+        run: |
+          cp "plugin/build/distributions/plugin-${{ steps.version.outputs.version }}.zip" "$ASSET"
+
+      # Pinned to a full commit SHA: this is the only third-party action and it
+      # runs with contents: write.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2.6.2
+        with:
+          files: ai-usage-coach-${{ steps.version.outputs.version }}.zip
+          name: AI Usage Coach ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', steps.version.outputs.version) || github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
+          body: |
+            Install via **Settings → Plugins → ⚙ → Install Plugin from Disk…**
+            and pick the attached zip. See the README "Install from GitHub"
+            section for details.

@@ -27,6 +27,12 @@ in this repo.
 2. Open the **AI Usage Coach** tool window (right stripe). On first open it
    shows a one-time data-access disclosure, then builds your activity index.
 
+### Install from GitHub
+
+1. Download `ai-usage-coach-<version>.zip` from the [Releases page](../../releases).
+2. **Settings → Plugins → ⚙ → Install Plugin from Disk…**, then pick the zip.
+3. Restart the IDE.
+
 ## Privacy & data access
 
 The plugin reads your local AI coding-assistant session logs **read-only**, keeps
