@@ -67,3 +67,32 @@ index 3d0190f..14ed4b5 100644
  }
  
  /* ---- Chart.js import (bundled via esbuild) ---- */
+diff --git a/sidecar/vendor/webview/page-learning.ts b/sidecar/vendor/webview/page-learning.ts
+index 9b287ec..3280b3e 100644
+--- a/sidecar/vendor/webview/page-learning.ts
++++ b/sidecar/vendor/webview/page-learning.ts
+@@ -552,8 +552,9 @@ async function loadDidYouKnowAsync(state: LearningState): Promise<void> {
+     }
+     saveState(state);
+     render(renderDidYouKnowHtml(facts), el);
+-  } catch {
+-    render(html`<span class="text-muted" style="font-size:11px">Could not generate tips.</span>`, el);
++  } catch (err) {
++    const msg = err instanceof Error ? err.message : 'Could not generate tips.';
++    render(html`<span class="text-muted" style="font-size:11px">${msg}</span>`, el);
+   }
+ }
+ 
+@@ -657,9 +658,10 @@ function loadResourcesAsync(state: LearningState, languages: { label: string; lo
+     state.cachedResourceKey = key;
+     saveState(state);
+     render(renderResourcesHtml(resources), el);
+-  }).catch(() => {
++  }).catch((err: unknown) => {
+     if (document.getElementById('learn-resources-container')) {
+-      render(html`<span class="text-muted" style="font-size:11px">Could not generate resources.</span>`, el);
++      const msg = err instanceof Error ? err.message : 'Could not generate resources.';
++      render(html`<span class="text-muted" style="font-size:11px">${msg}</span>`, el);
+     }
+   });
+ }
