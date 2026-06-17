@@ -1,8 +1,22 @@
 diff --git a/sidecar/vendor/webview/page-learning-templates.ts b/sidecar/vendor/webview/page-learning-templates.ts
-index abcfa5e..a6712a7 100644
+index abcfa5e..7444f83 100644
 --- a/sidecar/vendor/webview/page-learning-templates.ts
 +++ b/sidecar/vendor/webview/page-learning-templates.ts
-@@ -90,8 +90,13 @@ export function renderQuiz(questions: QuizQuestion[], index: number): ComponentC
+@@ -41,8 +41,12 @@ export function renderCodeReviewRound(rounds: CodeComparisonRound[], index: numb
+   };
+   const catColor = catColors[round.category] ?? COLORS.blue;
+ 
++  // Key by index (same reason as the quiz card): force a fresh card per round so
++  // Preact does not reuse nodes and leak imperative mutations — the snippets'
++  // `learn-cr-disabled` class + winner/loser highlight and the separately-rendered
++  // #cr-feedback panel — onto the next round (which would leave it unanswerable).
+   return html`
+-    <div class="learn-cr-round" data-index=${String(index)}>
++    <div class="learn-cr-round" key=${String(index)} data-index=${String(index)}>
+       <div class="learn-cr-meta">
+         <span class="learn-cr-cat" style=${`background:${catColor}20;color:${catColor}`}>${round.category}</span>
+         <span class=${`learn-cr-diff learn-quiz-diff-${round.difficulty}`}>${round.difficulty}</span>
+@@ -90,8 +94,13 @@ export function renderQuiz(questions: QuizQuestion[], index: number): ComponentC
    }
  
    const question = questions[index];

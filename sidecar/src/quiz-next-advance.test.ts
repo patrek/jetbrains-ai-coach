@@ -95,4 +95,59 @@ describe('quiz advances cleanly through every question', () => {
     // Past the last question -> "complete" screen.
     expect(quizContainer.querySelector('#quiz-more-btn')).not.toBeNull();
   });
+
+  it('Code Review ("Slop or Not"): each round has fresh, clickable snippets', async () => {
+    const { renderCodeReviewRound } = await import('../vendor/webview/page-learning-templates');
+    const { render, html } = await import('../vendor/webview/render');
+    type Round = Parameters<typeof renderCodeReviewRound>[0][number];
+
+    const rounds: Round[] = [0, 1, 2].map((n) => ({
+      snippetA: `A${n}`, snippetB: `B${n}`, betterSnippet: 'A', title: `T${n}`,
+      category: 'readability', explanation: `why ${n}`, difficulty: 'medium', language: 'markdown',
+    }));
+    const state = { codeReviewTotal: 0, codeReviewCorrect: 0 } as Parameters<typeof renderCodeReviewRound>[2];
+
+    document.body.innerHTML = '<div id="cr-container"></div>';
+    const cr = document.getElementById('cr-container')!;
+    const num = () => cr.querySelector('.learn-quiz-num')?.textContent;
+    const snippets = () => [...cr.querySelectorAll<HTMLElement>('.learn-cr-snippet')];
+    const fb = () => document.getElementById('cr-feedback')!;
+
+    // Mirror wireCodeReviewHandlers: on pick, imperatively disable snippets, then
+    // render feedback + Next into #cr-feedback; Next re-renders the round.
+    const wire = (i: number): void => {
+      for (const s of snippets()) {
+        s.addEventListener('click', () => {
+          for (const x of snippets()) x.classList.add('learn-cr-disabled');
+          const f = fb();
+          f.style.display = 'block';
+          render(html`<p>${rounds[i].explanation}</p><button class="learn-cr-next">Next</button>`, f);
+          f.querySelector('.learn-cr-next')?.addEventListener('click', () => {
+            render(renderCodeReviewRound(rounds, i + 1, state), cr);
+            wire(i + 1);
+          });
+        });
+      }
+    };
+    const pick = () => {
+      const s = snippets()[0];
+      expect(s.classList.contains('learn-cr-disabled')).toBe(false); // must be answerable
+      s.dispatchEvent(new window.Event('click', { bubbles: true }));
+    };
+    const next = () => fb().querySelector<HTMLButtonElement>('.learn-cr-next')!
+      .dispatchEvent(new window.Event('click', { bubbles: true }));
+
+    render(renderCodeReviewRound(rounds, 0, state), cr);
+    wire(0);
+    expect(num()).toBe('1/3');
+    pick(); next();
+
+    expect(num()).toBe('2/3');
+    expect(snippets().every((s) => !s.classList.contains('learn-cr-disabled'))).toBe(true);
+    expect(fb().textContent?.trim()).toBe('');
+    pick(); next();
+
+    expect(num()).toBe('3/3');
+    expect(snippets().every((s) => !s.classList.contains('learn-cr-disabled'))).toBe(true);
+  });
 });
