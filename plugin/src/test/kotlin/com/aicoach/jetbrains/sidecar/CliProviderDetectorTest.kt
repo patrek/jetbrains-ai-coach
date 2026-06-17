@@ -132,7 +132,7 @@ class CliProviderDetectorTest {
     }
 
     @Test
-    fun `availability is memoized until invalidated`() {
+    fun `an ACTIVE result is memoized until invalidated`() {
         val probes = mutableListOf<Pair<String, List<String>>>()
         val d = detector(
             existing = setOf("/usr/bin/claude"),
@@ -144,11 +144,42 @@ class CliProviderDetectorTest {
         )
 
         d.availability("claude")
-        d.availability("claude") // cached — no new probes
+        d.availability("claude") // ACTIVE is cached — no new probes
         assertEquals(2, probes.size) // one --version + one auth status
 
         d.invalidate()
         d.availability("claude") // re-probes after invalidation
         assertEquals(4, probes.size)
+    }
+
+    @Test
+    fun `a degraded result is not cached, so a transient failure self-heals`() {
+        val probes = mutableListOf<Pair<String, List<String>>>()
+        // Mutable auth response: starts failing (transient), then recovers.
+        var authExit = 1
+        val d = CliProviderDetector(
+            env = mapOf("PATH" to "/usr/bin"),
+            userHome = home,
+            os = OsKind.LINUX,
+            probe = { p, args ->
+                probes.add(p.toString() to args)
+                when {
+                    args == listOf("--version") -> version()
+                    args == listOf("auth", "status") -> ProbeOutcome.Exited(authExit, "")
+                    else -> ProbeOutcome.Unavailable
+                }
+            },
+            exists = { it.toString() == "/usr/bin/claude" },
+        )
+
+        // First poll: auth probe fails -> UNAUTHENTICATED, NOT cached.
+        assertEquals(Status.UNAUTHENTICATED, d.availability("claude").status)
+        // Auth recovers; the next poll re-probes (no stale cached negative) -> ACTIVE.
+        authExit = 0
+        assertEquals(Status.ACTIVE, d.availability("claude").status)
+        // Now ACTIVE is cached: a third call does not re-probe.
+        val probeCountAfterActive = probes.size
+        d.availability("claude")
+        assertEquals(probeCountAfterActive, probes.size)
     }
 }

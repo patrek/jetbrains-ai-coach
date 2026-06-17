@@ -19,11 +19,13 @@ import java.util.concurrent.ConcurrentHashMap
  * spawning a real CLI.
  *
  * Detection is a property of the **machine/PATH**, identical across IDE windows,
- * so this is an app-level service whose results are **memoized** (the per-window
- * differences — which provider a project selected — are resolved elsewhere, in
- * [com.aicoach.jetbrains.jcef.WebviewBridge]). The cache is invalidated on a
- * settings change and on "Restart sidecar"; the first (uncached) probe spawns a
- * child, so callers must invoke [availability] off the EDT/CEF thread.
+ * so this is an app-level service that **memoizes only ACTIVE results** (the
+ * per-window differences — which provider a project selected — are resolved
+ * elsewhere, in [com.aicoach.jetbrains.jcef.WebviewBridge]). Degraded results are
+ * not cached, so a transient probe failure self-heals on the next poll; the cache
+ * is also invalidated on a settings change and on "Restart sidecar". The first
+ * (uncached) probe spawns a child, so callers must invoke [availability] off the
+ * EDT/CEF thread.
  *
  * No probe costs an LLM call: installation is a `--version` run; Claude auth is a
  * `claude auth status` exit code; Copilot auth is best-effort env-token presence
@@ -65,18 +67,30 @@ class CliProviderDetector(
      *  [Status.UNAUTHENTICATED]; `null` when [Status.NOT_INSTALLED]. */
     data class Availability(val binaryPath: String?, val status: Status)
 
+    // Only ACTIVE results are cached. A degraded result (not-installed /
+    // unauthenticated) is intentionally NOT memoized so a *transient* probe
+    // failure — e.g. `claude auth status` momentarily reading a half-written
+    // credentials file — self-heals on the next poll instead of sticking for the
+    // whole session. Probes are cheap (no LLM call) and the webview only re-polls
+    // for a provider-backed action, so re-probing while degraded is acceptable.
     private val cache = ConcurrentHashMap<String, Availability>()
 
-    /** The memoized availability of [providerId] (`claude` / `copilot`). The first
-     *  call per id spawns probes — call off the EDT/CEF thread. An unknown id is
-     *  reported as [Status.NOT_INSTALLED]. Two concurrent first calls may probe
-     *  twice; that is harmless (the probe is read-only and idempotent) and avoids
-     *  holding a lock across a child-process spawn. */
-    fun availability(providerId: String): Availability =
-        cache.getOrPut(providerId) { detect(providerId) }
+    /** The availability of [providerId] (`claude` / `copilot`). An [Status.ACTIVE]
+     *  result is memoized; a degraded result re-probes on the next call so a
+     *  transient failure recovers without a settings change. Spawns probes — call
+     *  off the EDT/CEF thread. An unknown id is reported as [Status.NOT_INSTALLED].
+     *  Two concurrent first calls may probe twice; that is harmless (the probe is
+     *  read-only and idempotent) and avoids holding a lock across a child spawn. */
+    fun availability(providerId: String): Availability {
+        cache[providerId]?.let { return it }
+        val result = detect(providerId)
+        if (result.status == Status.ACTIVE) cache[providerId] = result
+        return result
+    }
 
-    /** Drop all cached results so the next [availability] re-probes. Called when
-     *  settings change or the sidecar is restarted. */
+    /** Drop cached results so the next [availability] re-probes. Called when
+     *  settings change or the sidecar is restarted (e.g. to re-detect a provider
+     *  that just lost auth, since ACTIVE results are otherwise sticky). */
     fun invalidate() {
         cache.clear()
     }
