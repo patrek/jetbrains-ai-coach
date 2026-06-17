@@ -50,6 +50,19 @@ directory out, add its absolute path (one per line) under **Excluded
 directories** in **Settings → Tools → AI Usage Coach**; the sidecar then never
 reads it or its contents.
 
+### Optional AI inference (opt-in egress)
+
+Two dashboard actions — **Generate rule** and **Explain occurrence** — can be
+powered by a CLI agent you already have installed (**Claude Code** or **GitHub
+Copilot CLI**). This is **off by default**. When you select a provider under
+**Settings → Tools → AI Usage Coach** (globally) or per project, a one-time
+disclosure explains that using these actions sends prompts derived from your
+usage logs to that CLI, which forwards them to a network language model. Nothing
+leaves your machine unless you select a provider **and** acknowledge that
+disclosure; everything else stays local. There is no automatic fallback between
+providers — a missing, unauthenticated, or failing CLI degrades the action with a
+specific reason and sends nothing.
+
 ## Using the analytics in Claude Code (MCP)
 
 The plugin ships a standalone [MCP](https://modelcontextprotocol.io) server that

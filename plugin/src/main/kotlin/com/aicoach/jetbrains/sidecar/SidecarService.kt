@@ -97,9 +97,8 @@ class SidecarService : Disposable {
         originalId: String,
         method: String,
         params: JsonObject?,
-        projectRoot: String?,
-        safeMode: Boolean,
-    ) = supervisor.forward(client, originalId, method, params, projectRoot, safeMode)
+        scope: RequestScope,
+    ) = supervisor.forward(client, originalId, method, params, scope)
 
     /** Issue a host-originated sidecar request (e.g. the trust dialog fetching
      *  the pending list); [onResult] receives the response `data`. */
@@ -111,8 +110,12 @@ class SidecarService : Disposable {
         onResult: (JsonElement) -> Unit,
     ) = supervisor.hostCall(method, params, projectRoot, safeMode, onResult)
 
-    /** User-initiated "Restart sidecar": clears the backoff budget. */
-    fun requestRestart() = supervisor.requestRestart()
+    /** User-initiated "Restart sidecar": clears the backoff budget and re-probes
+     *  provider availability (the CLI may have been installed/authed since). */
+    fun requestRestart() {
+        CliProviderDetector.getInstance().invalidate()
+        supervisor.requestRestart()
+    }
 
     override fun dispose() {
         supervisor.stop()

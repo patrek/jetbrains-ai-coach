@@ -40,6 +40,16 @@
             displayName="AI Usage Coach"
             instance="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"/>
 
+        <!-- App-level, memoized CLI inference provider detection (machine-global). -->
+        <applicationService
+            serviceImplementation="com.aicoach.jetbrains.sidecar.CliProviderDetector"/>
+        <!-- Per-project override of the global AI inference provider. -->
+        <projectConfigurable
+            parentId="com.aicoach.jetbrains.settings.CoachSettingsConfigurable"
+            id="com.aicoach.jetbrains.settings.CliProviderProjectConfigurable"
+            displayName="AI Inference Provider"
+            instance="com.aicoach.jetbrains.settings.CliProviderProjectConfigurable"/>
+
         <!-- General notifications (MCP discovery, summary export, first-run
              data-access disclosure). Registered so the balloons actually fire. -->
         <notificationGroup
