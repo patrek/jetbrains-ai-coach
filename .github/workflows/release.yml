@@ -83,6 +83,21 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # On a tag push, rewrite gradle.properties so the committed version stays
+      # in sync with the release. workflow_dispatch builds are drafts — skip.
+      - name: Stamp version in gradle.properties
+        if: github.event_name == 'push'
+        run: sed -i "s/^version = .*/version = ${{ steps.version.outputs.version }}/" gradle.properties
+
+      - name: Commit version bump
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gradle.properties
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
+          git push origin HEAD:main
+
       # Fast safety gate first: platform-free unit tests (seconds, no IDE
       # download) fail fast before the heavier buildPlugin. The 5-IDE
       # verifyPlugin matrix already ran when this commit merged to main.
