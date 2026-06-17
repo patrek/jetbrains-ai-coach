@@ -21,7 +21,10 @@ diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
 +// flag), these gate on `capabilities.provider.status` so each provider state —
 +// not-selected / not-consented / not-installed / unauthenticated — shows a
 +// distinct, actionable message; an `active` provider lets the call through.
-+const PROVIDER_METHODS = new Set(['generateRule', 'explainOccurrence']);
++const PROVIDER_METHODS = new Set([
++  'generateRule', 'explainOccurrence',
++  'generateLearningQuiz', 'generateLearningResources', 'generateCodeComparison', 'generateDidYouKnow',
++]);
 +// Friendly, MCP-pointing message surfaced wherever an LLM feature with no
 +// provider backend is invoked while the host has no LLM — both proactively
 +// (gated before the request) and reactively (translating `llm-unavailable`).

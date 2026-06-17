@@ -59,6 +59,7 @@ import { getPersonalRulesDir, getProjectRulesDir } from '../vendor/core/rule-loa
 import { approve as approveTrust, getDefaultTrustStore } from '../vendor/core/rule-trust';
 import { ruleScope, currentPending, approvePending } from './rule-scope';
 import { SDLC_CATALOG_HANDLERS } from './sdlc-catalog';
+import { createLearningHandlers } from './learning-provider';
 import type { Analyzer } from '../vendor/core/analyzer';
 import type { ParseResult } from '../vendor/core/parser';
 
@@ -105,10 +106,6 @@ export const LLM_UNAVAILABLE_METHODS: ReadonlySet<string> = new Set<string>([
   'compileNlRule',
   'createSkill',
   'generateSkillContent',
-  'generateLearningQuiz',
-  'generateLearningResources',
-  'generateCodeComparison',
-  'generateDidYouKnow',
   'triageSkills',
   'triageCatalog',
   'reviewContextFiles',
@@ -370,6 +367,7 @@ const OVERRIDES: Record<string, SidecarHandler> = {
   approveLocalRules,
   reloadLocalRules,
   exportSummaryContent,
+  ...createLearningHandlers(runWithProvider),
   // SDLC + community-catalog ports (ADR 0009 "Port (part 6)").
   ...SDLC_CATALOG_HANDLERS,
 };

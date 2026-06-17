@@ -89,12 +89,15 @@ function ctx(overrides: Partial<HandlerContext> = {}): HandlerContext {
 
 describe('resolveHandler precedence', () => {
    it('degrades every still-unavailable LLM method to the typed error', async () => {
-    // generateRule + explainOccurrence left the set when they were wired to a
-    // provider, dropping it from 12 to 10. compileNlRule and the 9 extension
-    // LLM methods remain.
-    expect(LLM_UNAVAILABLE_METHODS.size).toBe(10);
+    // Provider-backed methods are not in the generic degraded set. The remaining
+    // methods still have no provider backend and keep the typed degradation.
+    expect(LLM_UNAVAILABLE_METHODS.size).toBe(6);
     expect(LLM_UNAVAILABLE_METHODS.has('generateRule')).toBe(false);
     expect(LLM_UNAVAILABLE_METHODS.has('explainOccurrence')).toBe(false);
+    expect(LLM_UNAVAILABLE_METHODS.has('generateLearningQuiz')).toBe(false);
+    expect(LLM_UNAVAILABLE_METHODS.has('generateLearningResources')).toBe(false);
+    expect(LLM_UNAVAILABLE_METHODS.has('generateCodeComparison')).toBe(false);
+    expect(LLM_UNAVAILABLE_METHODS.has('generateDidYouKnow')).toBe(false);
     expect(LLM_UNAVAILABLE_METHODS.has('compileNlRule')).toBe(true);
     for (const method of LLM_UNAVAILABLE_METHODS) {
       const handler = resolveHandler(method);
@@ -116,6 +119,103 @@ describe('resolveHandler precedence', () => {
 
   it('returns undefined for an unknown method', () => {
     expect(resolveHandler('totallyNotAMethod')).toBeUndefined();
+  });
+});
+
+const LEARNING_SUCCESS_CASES = [
+  {
+    method: 'generateLearningQuiz',
+    key: 'questions',
+    items: [
+      {
+        question: 'What does this code print?',
+        choices: ['A', 'B', 'C', 'D'],
+        correctIndex: 1,
+        explanation: 'It prints B.',
+        difficulty: 'medium',
+        topic: 'Async',
+      },
+    ],
+    params: { languages: ['TypeScript'], topics: ['Async'], difficulty: 'medium' },
+  },
+  {
+    method: 'generateCodeComparison',
+    key: 'rounds',
+    items: [
+      {
+        title: 'Prefer explicit awaits',
+        snippetA: 'const value = await load();',
+        snippetB: 'const value = load();',
+        betterSnippet: 'A',
+        explanation: 'The awaited version uses the resolved value.',
+        category: 'correctness',
+        difficulty: 'medium',
+        language: 'TypeScript',
+      },
+    ],
+    params: { languages: ['TypeScript'], difficulty: 'medium' },
+  },
+  {
+    method: 'generateDidYouKnow',
+    key: 'facts',
+    items: [
+      {
+        fact: 'Vitest can run one test file directly with npx vitest run.',
+        project: 'vitest',
+        category: 'debug',
+      },
+    ],
+    params: { languages: ['TypeScript'], packageDeps: ['vitest'] },
+  },
+  {
+    method: 'generateLearningResources',
+    key: 'resources',
+    items: [
+      {
+        title: 'TypeScript Handbook',
+        url: 'https://www.typescriptlang.org/docs/',
+        type: 'Docs',
+        reason: 'Official reference for TypeScript language behavior.',
+      },
+    ],
+    params: { languages: ['TypeScript'], focusConcepts: ['Types'] },
+  },
+] as const;
+
+describe('Learning methods (provider-wired)', () => {
+  for (const { method, key, items, params } of LEARNING_SUCCESS_CASES) {
+    it(`${method} returns provider JSON under ${key}`, async () => {
+      fakeRun.mockResolvedValue({ ok: true, text: JSON.stringify(items) });
+      const handler = resolveHandler(method)!;
+      const result = await handler(ctx({ provider: FAKE_PROVIDER, params }));
+      expect(result).toEqual({ [key]: items });
+      expect(fakeRun).toHaveBeenCalledTimes(1);
+    });
+
+    it(`${method} degrades to bare llm-unavailable when no provider is stamped`, async () => {
+      const handler = resolveHandler(method)!;
+      const result = await handler(ctx({ params }));
+      expect(result).toEqual({ error: 'llm-unavailable' });
+      expect(fakeRun).not.toHaveBeenCalled();
+    });
+
+    it(`${method} degrades to llm-unavailable + reason on provider runtime failure`, async () => {
+      fakeRun.mockResolvedValue({ ok: false, reason: 'cli-error' });
+      const handler = resolveHandler(method)!;
+      const result = await handler(ctx({ provider: FAKE_PROVIDER, params }));
+      expect(result).toEqual({ error: 'llm-unavailable', reason: 'cli-error' });
+    });
+  }
+});
+
+describe('webview provider gate patch', () => {
+  it('lists all provider-backed Learning methods in PROVIDER_METHODS', () => {
+    const patch = fs.readFileSync(path.resolve(__dirname, '../../tools/patches/0006-webview-llm-capability-gate.patch'), 'utf-8');
+    const providerMethods = patch.match(/const PROVIDER_METHODS = new Set\(\[([^\]]+)\]\);/)?.[1] ?? '';
+    expect(providerMethods).toContain('generateLearningQuiz');
+    expect(providerMethods).toContain('generateLearningResources');
+    expect(providerMethods).toContain('generateCodeComparison');
+    expect(providerMethods).toContain('generateDidYouKnow');
   });
 });
 

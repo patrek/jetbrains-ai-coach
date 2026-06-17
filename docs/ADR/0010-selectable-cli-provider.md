@@ -9,12 +9,14 @@
 Two otherwise-complete dashboard actions — `generateRule` and `explainOccurrence`
 — were dead because their inference ran through the VS Code host language model,
 which the JetBrains port lacks ([ADR 0006](0006-getcapabilities-degradation.md)
-degraded all LLM methods to `llm-unavailable`). Users already have a CLI agent
-installed — the very tool whose logs this plugin analyzes — so the cheapest honest
-backend is to shell out, non-interactively, to the CLI they already authenticated
-(**Claude Code** or **GitHub Copilot CLI**). The plugin is otherwise a local-only
-log-analytics tool, so adding network egress must be a deliberate, opt-in choice,
-not a surprise.
+degraded all LLM methods to `llm-unavailable`). The Learning page had the same
+problem for `generateLearningQuiz`, `generateLearningResources`,
+`generateCodeComparison`, and `generateDidYouKnow`. Users already have a CLI
+agent installed — the very tool whose logs this plugin analyzes — so the cheapest
+honest backend is to shell out, non-interactively, to the CLI they already
+authenticated (**Claude Code** or **GitHub Copilot CLI**). The plugin is otherwise
+a local-only log-analytics tool, so adding network egress must be a deliberate,
+opt-in choice, not a surprise.
 
 ## Decision
 
@@ -55,9 +57,9 @@ not a surprise.
    degrades the action to `llm-unavailable` augmented with a distinguishable
    `reason` (`not-installed` / `unauthenticated` / `timeout` / `cli-error` /
    `bad-output`). The webview gate (an expansion of patch 0006) renders a specific
-   message per reason for the two wired methods and re-polls `getCapabilities` per
+   message per reason for the six wired methods and re-polls `getCapabilities` per
    call so a settings change takes effect without a host→webview push. The other
-   ten LLM methods keep the single-flag degraded UX.
+   six LLM methods keep the single-flag degraded UX.
 
 6. **`compileNlRule` is descoped.** Unlike the other two, its LLM call is buried
    in a private `compileLlm()` inside `vendor/core/rule-compiler.ts` (with an
@@ -66,13 +68,26 @@ not a surprise.
    non-upstreamable divergence against the minimal-divergence rule. It keeps its
    heuristic fallback and is wired in a follow-up.
 
+7. **Learning prompts live in sidecar-owned code.** The four Learning handlers are
+   registered from `sidecar/src/learning-provider.ts` through
+   `createLearningHandlers(runWithProvider)`. That module owns the re-derived
+   prompts, JSON repair, validators, and response normalizers because the upstream
+   sources live in `panel-request-service.ts` and `panel-llm.ts`, both coupled to
+   `vscode` at module/runtime level. This avoids a larger vendored patch, but it
+   creates an upstream-drift risk: syncs that change those two upstream files must
+   be compared against the sidecar-owned Learning module.
+
 ## Consequences
 
 - One new vendored export patch (`0008`) exposes the reusable `generateRule`
   prompt/validators; the `explainOccurrence` prompts are re-derived in the
   override (they are inline literals, not symbols). Patch `0006` grows to gate the
-  two wired methods on `provider.status` — a deliberate, risk-flagged expansion of
+  six wired methods on `provider.status` — a deliberate, risk-flagged expansion of
   the most sensitive divergence, logged in `tools/patches/README.md`.
+- The generic degraded set in `rpc-handlers.ts` drops from ten methods to six.
+  The Learning methods now share the provider failure semantics used by
+  `generateRule` and `explainOccurrence`: absent stamp returns bare
+  `llm-unavailable`; runtime provider failure adds `reason`.
 - Copilot has no stable JSON, no documented exit codes, and undocumented stdin
   ([github/copilot-cli#3397](https://github.com/github/copilot-cli/issues/3397)),
   so its adapter parses plain text only, caps the argv-borne prompt at 96 KiB,
