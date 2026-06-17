@@ -1,0 +1,33 @@
+diff --git a/sidecar/vendor/webview/page-learning-templates.ts b/sidecar/vendor/webview/page-learning-templates.ts
+index abcfa5e..7444f83 100644
+--- a/sidecar/vendor/webview/page-learning-templates.ts
++++ b/sidecar/vendor/webview/page-learning-templates.ts
+@@ -41,8 +41,12 @@ export function renderCodeReviewRound(rounds: CodeComparisonRound[], index: numb
+   };
+   const catColor = catColors[round.category] ?? COLORS.blue;
+ 
++  // Key by index (same reason as the quiz card): force a fresh card per round so
++  // Preact does not reuse nodes and leak imperative mutations — the snippets'
++  // `learn-cr-disabled` class + winner/loser highlight and the separately-rendered
++  // #cr-feedback panel — onto the next round (which would leave it unanswerable).
+   return html`
+-    <div class="learn-cr-round" data-index=${String(index)}>
++    <div class="learn-cr-round" key=${String(index)} data-index=${String(index)}>
+       <div class="learn-cr-meta">
+         <span class="learn-cr-cat" style=${`background:${catColor}20;color:${catColor}`}>${round.category}</span>
+         <span class=${`learn-cr-diff learn-quiz-diff-${round.difficulty}`}>${round.difficulty}</span>
+@@ -90,8 +94,13 @@ export function renderQuiz(questions: QuizQuestion[], index: number): ComponentC
+   }
+ 
+   const question = questions[index];
++  // Key the card by index so Preact mounts a FRESH card per question instead of
++  // reusing DOM nodes. Reuse leaked imperative mutations from the answered
++  // question onto the next one: the choice buttons stayed `disabled` with their
++  // correct/wrong classes (next question unanswerable), and the separately-rendered
++  // feedback panel + its stale Next button stayed visible ("Next does nothing").
+   return html`
+-    <div class="learn-quiz-card" data-index=${String(index)}>
++    <div class="learn-quiz-card" key=${String(index)} data-index=${String(index)}>
+       <div class="learn-quiz-meta">
+         <span class=${`learn-quiz-diff learn-quiz-diff-${question.difficulty}`}>${question.difficulty}</span>
+         <span class="learn-quiz-topic">${question.topic}</span>

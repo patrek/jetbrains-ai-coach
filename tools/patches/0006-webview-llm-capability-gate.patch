@@ -1,7 +1,7 @@
 diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
 --- a/sidecar/vendor/webview/shared.ts
 +++ b/sidecar/vendor/webview/shared.ts
-@@ -12,7 +12,51 @@
+@@ -12,7 +12,54 @@
  let rpcId = 0;
  const RPC_TIMEOUT_MS = 120_000;
  const RPC_LLM_TIMEOUT_MS = 300_000;
@@ -21,7 +21,10 @@ diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
 +// flag), these gate on `capabilities.provider.status` so each provider state —
 +// not-selected / not-consented / not-installed / unauthenticated — shows a
 +// distinct, actionable message; an `active` provider lets the call through.
-+const PROVIDER_METHODS = new Set(['generateRule', 'explainOccurrence']);
++const PROVIDER_METHODS = new Set([
++  'generateRule', 'explainOccurrence',
++  'generateLearningQuiz', 'generateLearningResources', 'generateCodeComparison', 'generateDidYouKnow',
++]);
 +// Friendly, MCP-pointing message surfaced wherever an LLM feature with no
 +// provider backend is invoked while the host has no LLM — both proactively
 +// (gated before the request) and reactively (translating `llm-unavailable`).
@@ -54,7 +57,7 @@ diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
  const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
  
  /**
-@@ -22,20 +66,55 @@
+@@ -22,20 +69,55 @@
   */
  export function rpc<T = unknown>(method: string, params?: Record<string, unknown>): Promise<T> {
    return new Promise((resolve, reject) => {
@@ -121,7 +124,7 @@ diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
  /**
   * Run multiple RPC calls in parallel with individual error isolation.
   * Failed calls resolve to their fallback value instead of crashing the entire batch.
-@@ -60,7 +139,18 @@
+@@ -60,7 +142,18 @@
        const { resolve, reject } = pending.get(msg.id as string)!;
        pending.delete(msg.id as string);
        if (msg.data && typeof msg.data === 'object' && (msg.data as Record<string, unknown>).error) {
@@ -141,7 +144,7 @@ diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
        } else {
          resolve(msg.data);
        }
-@@ -84,6 +174,12 @@
+@@ -84,6 +177,12 @@
        onDataReady(msg.currentWorkspace as string);
      }
    });

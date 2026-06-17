@@ -331,9 +331,21 @@ class WebviewBridge(
         const val STATE_KEY = "aicoach.webviewState"
         const val BUDGETS_KEY = "aicoach.modelBudgets"
 
-        /** The only methods that carry an inference provider stamp; the other
-         *  forwarded methods need no provider and skip the availability probe. */
-        val PROVIDER_METHODS = setOf("generateRule", "explainOccurrence")
+        /** The methods that carry an inference provider stamp; the other forwarded
+         *  methods need no provider and skip the availability probe. MUST stay in
+         *  sync with the sidecar's provider-backed handlers (`generateRule` and
+         *  `explainOccurrence` in `rpc-handlers.ts`, plus the four learning methods
+         *  from `createLearningHandlers`) and the webview's `PROVIDER_METHODS`
+         *  (patch `0006`): a method missing here is never stamped, so the sidecar
+         *  sees no provider and degrades it to `llm-unavailable`. */
+        val PROVIDER_METHODS = setOf(
+            "generateRule",
+            "explainOccurrence",
+            "generateLearningQuiz",
+            "generateLearningResources",
+            "generateCodeComparison",
+            "generateDidYouKnow",
+        )
 
         private const val CONNECT_TIMEOUT_MS = 10_000L
         private val SEQ = AtomicInteger(0)
