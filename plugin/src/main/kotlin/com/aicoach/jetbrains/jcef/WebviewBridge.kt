@@ -1,6 +1,10 @@
 package com.aicoach.jetbrains.jcef
 
 import com.aicoach.jetbrains.export.ExportSummaryHandler
+import com.aicoach.jetbrains.settings.CoachSettings
+import com.aicoach.jetbrains.sidecar.CliProviderDetector
+import com.aicoach.jetbrains.sidecar.ProviderStamp
+import com.aicoach.jetbrains.sidecar.RequestScope
 import com.aicoach.jetbrains.sidecar.SidecarService
 import com.aicoach.jetbrains.sidecar.SidecarSupervisor
 import com.aicoach.jetbrains.trust.TrustGateController
@@ -118,7 +122,9 @@ class WebviewBridge(
                 reply(id, ok())
             }
             "loadModelBudgets" -> reply(id, parseStored(appProperties().getValue(BUDGETS_KEY)))
-            "getCapabilities" -> reply(id, capabilitiesReply())
+            // Resolved per window (the sidecar's single `hello` can't carry the
+            // per-project provider selection); availability is probed off-thread.
+            "getCapabilities" -> capabilitiesReply { caps -> reply(id, caps) }
             // Host-owned trust review: open the IDE dialog, never forward to the
             // sidecar (the bridge intercepts it — ADR 0009 Host row).
             "reviewLocalRules" -> {
@@ -143,8 +149,52 @@ class WebviewBridge(
                 return
             }
         }
-        service.forward(this, pending.id, pending.method, pending.params, projectRoot, trust.safeMode())
+        dispatch(pending)
     }
+
+    /** Resolve the request scope (provider stamp included only for the AI methods)
+     *  and forward. The scope resolution may probe provider availability, so it
+     *  runs off the CEF thread — [resolveScope] never blocks this callback. The
+     *  `onReady` callback may therefore run on a background pool thread; that is
+     *  safe — `service.forward` is synchronized and `reply`/`deliver` already run
+     *  off the CEF thread today (the supervisor calls `onResponse` from its stream
+     *  thread, and `executeJavaScript` is thread-safe). */
+    private fun dispatch(pending: Pending) {
+        resolveScope(pending.method) { scope ->
+            service.forward(this, pending.id, pending.method, pending.params, scope)
+        }
+    }
+
+    /**
+     * Build the [RequestScope] for [method]. The provider is stamped **only** for
+     * the AI-backed methods, and only when a provider is selected, egress-consented,
+     * and [CliProviderDetector.Status.ACTIVE]. Everything else forwards synchronously
+     * with no provider (and no probe). The first availability probe per provider can
+     * spawn a child, so it runs on a background executor — never the CEF thread (N4).
+     */
+    private fun resolveScope(method: String, onReady: (RequestScope) -> Unit) {
+        val base = RequestScope(projectRoot, trust.safeMode())
+        val effective = effectiveProvider()
+        if (method !in PROVIDER_METHODS || effective.isEmpty() || !egressConsented()) {
+            onReady(base)
+            return
+        }
+        AppExecutorUtil.getAppExecutorService().execute {
+            val availability = CliProviderDetector.getInstance().availability(effective)
+            val stamp = availability.binaryPath
+                ?.takeIf { availability.status == CliProviderDetector.Status.ACTIVE }
+                ?.let { ProviderStamp(effective, it) }
+            onReady(base.copy(provider = stamp))
+        }
+    }
+
+    /** The provider this window uses: the per-project override wins; a blank
+     *  override inherits the global default; both blank means "none selected". */
+    private fun effectiveProvider(): String =
+        projectProperties().getValue(CoachSettings.PROVIDER_OVERRIDE_KEY, "")
+            .ifBlank { CoachSettings.getInstance().providerId }
+
+    private fun egressConsented(): Boolean = CoachSettings.getInstance().providerEgressConsented
 
     private fun persistState(state: JsonElement?) {
         projectProperties().setValue(STATE_KEY, (state ?: JsonObject()).toString())
@@ -157,7 +207,7 @@ class WebviewBridge(
         connected = true
         connectTimeout?.cancel(false)
         val drained = synchronized(outbound) { ArrayDeque(outbound).also { outbound.clear() } }
-        for (pending in drained) service.forward(this, pending.id, pending.method, pending.params, projectRoot, trust.safeMode())
+        for (pending in drained) dispatch(pending)
         // Surface any already-pending local rules now that the sidecar is up.
         trust.onConnected()
     }
@@ -208,10 +258,52 @@ class WebviewBridge(
         runCatching { browser.cefBrowser.executeJavaScript(js, browser.cefBrowser.url, 0) }
     }
 
-    private fun capabilitiesReply(): JsonObject = JsonObject().apply {
-        addProperty("llm", false)
+    /**
+     * Compute this window's capabilities and hand them to [onReady]. `llm` is true
+     * only when the resolved provider is selected, egress-consented, **and**
+     * [CliProviderDetector.Status.ACTIVE]; the `provider` object carries the
+     * specific [providerStatus] so the webview can render an actionable message for
+     * each degraded state. Probing availability can spawn, so it runs off-thread —
+     * but only when a provider is both selected and consented (otherwise the status
+     * is known without a probe).
+     */
+    private fun capabilitiesReply(onReady: (JsonObject) -> Unit) {
+        val effective = effectiveProvider()
+        when {
+            effective.isEmpty() -> onReady(buildCapabilities(active = false, id = "", status = "not-selected"))
+            !egressConsented() -> onReady(buildCapabilities(active = false, id = effective, status = "not-consented"))
+            else -> AppExecutorUtil.getAppExecutorService().execute {
+                val resolved = CliProviderDetector.getInstance().availability(effective).status
+                onReady(
+                    buildCapabilities(
+                        active = resolved == CliProviderDetector.Status.ACTIVE,
+                        id = effective,
+                        status = providerStatus(resolved),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun providerStatus(status: CliProviderDetector.Status): String = when (status) {
+        CliProviderDetector.Status.ACTIVE -> "active"
+        CliProviderDetector.Status.NOT_INSTALLED -> "not-installed"
+        CliProviderDetector.Status.UNAUTHENTICATED -> "unauthenticated"
+    }
+
+    /** The capabilities envelope: the host-synthesized `github`/`host` fields plus
+     *  the per-window `llm` flag and `provider { id, status }`. */
+    private fun buildCapabilities(active: Boolean, id: String, status: String): JsonObject = JsonObject().apply {
+        addProperty("llm", active)
         addProperty("github", capabilities.get("github")?.let { it.isJsonPrimitive && it.asBoolean } ?: false)
         addProperty("host", "jetbrains")
+        add(
+            "provider",
+            JsonObject().apply {
+                addProperty("id", id)
+                addProperty("status", status)
+            },
+        )
     }
 
     private fun ok(): JsonObject = JsonObject().apply { addProperty("ok", true) }
@@ -238,6 +330,11 @@ class WebviewBridge(
     companion object {
         const val STATE_KEY = "aicoach.webviewState"
         const val BUDGETS_KEY = "aicoach.modelBudgets"
+
+        /** The only methods that carry an inference provider stamp; the other
+         *  forwarded methods need no provider and skip the availability probe. */
+        val PROVIDER_METHODS = setOf("generateRule", "explainOccurrence")
+
         private const val CONNECT_TIMEOUT_MS = 10_000L
         private val SEQ = AtomicInteger(0)
         private val log = logger<WebviewBridge>()

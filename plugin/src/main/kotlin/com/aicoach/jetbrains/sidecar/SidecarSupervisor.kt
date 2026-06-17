@@ -132,12 +132,11 @@ class SidecarSupervisor(
         originalId: String,
         method: String,
         params: JsonObject?,
-        projectRoot: String?,
-        safeMode: Boolean,
+        scope: RequestScope,
     ) {
         val correlationId = "c${correlationSeq++}"
         correlations[correlationId] = client.clientId to originalId
-        send(requestEnvelope(correlationId, method, params, projectRoot, safeMode))
+        send(requestEnvelope(correlationId, method, params, scope))
     }
 
     /** Issue a host-originated request (e.g. the trust dialog asking the sidecar
@@ -158,15 +157,15 @@ class SidecarSupervisor(
         }
         val correlationId = "k${correlationSeq++}"
         hostCalls[correlationId] = onResult
-        send(requestEnvelope(correlationId, method, params, projectRoot, safeMode))
+        // Host-originated calls never carry an inference provider.
+        send(requestEnvelope(correlationId, method, params, RequestScope(projectRoot, safeMode)))
     }
 
     private fun requestEnvelope(
         id: String,
         method: String,
         params: JsonObject?,
-        projectRoot: String?,
-        safeMode: Boolean,
+        scope: RequestScope,
     ): JsonObject = JsonObject().apply {
         addProperty("type", "request")
         addProperty("id", id)
@@ -174,10 +173,21 @@ class SidecarSupervisor(
         if (params != null) add("params", params)
         // The sidecar consumes this as a filesystem directory (getProjectRulesDir);
         // it must be the project's absolute root path, never an IDE project id.
-        if (!projectRoot.isNullOrBlank()) addProperty("projectRoot", projectRoot)
+        if (!scope.projectRoot.isNullOrBlank()) addProperty("projectRoot", scope.projectRoot)
         // Untrusted (safe-mode) projects get their project rule/metric layer
         // hard-blocked in the sidecar regardless of per-file approval (D5).
-        addProperty("safeMode", safeMode)
+        addProperty("safeMode", scope.safeMode)
+        // The inference provider, stamped only when one is active + consented; the
+        // sidecar invokes whatever this names (cli-provider plan / ADR 0009).
+        scope.provider?.let { provider ->
+            add(
+                "provider",
+                JsonObject().apply {
+                    addProperty("id", provider.id)
+                    addProperty("binaryPath", provider.binaryPath)
+                },
+            )
+        }
     }
 
     // ---- sidecar -> host (SidecarSink) ----------------------------------
@@ -315,6 +325,25 @@ class SidecarSupervisor(
         const val BACKOFF_BASE_MS = 500L
     }
 }
+
+/**
+ * Everything stamped onto an outgoing RPC envelope beyond the method + params:
+ * the project root, the trust/safe-mode flag, and the optional CLI inference
+ * provider. Bundled into one value object so adding a stamp (the provider) does
+ * not grow the positional arg list of every forwarding hop (review I6).
+ */
+data class RequestScope(
+    val projectRoot: String?,
+    val safeMode: Boolean,
+    val provider: ProviderStamp? = null,
+)
+
+/**
+ * The resolved CLI inference provider stamped on the envelope — present only when
+ * a provider is selected, egress-consented, and available. Mirrors the sidecar's
+ * `provider: { id, binaryPath }` wire field (`rpc-server.ts` `parseProvider`).
+ */
+data class ProviderStamp(val id: String, val binaryPath: String)
 
 /** A started sidecar transport (a Node child process in production). */
 interface SidecarTransport {

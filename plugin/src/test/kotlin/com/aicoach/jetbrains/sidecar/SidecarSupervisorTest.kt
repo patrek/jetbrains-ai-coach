@@ -78,8 +78,8 @@ class SidecarSupervisorTest {
         transports.deliver(hello())
 
         // Both windows independently number their first request "1".
-        supervisor.forward(w1, originalId = "1", method = "getStats", params = null, projectRoot = "/a", safeMode = false)
-        supervisor.forward(w2, originalId = "1", method = "getStats", params = null, projectRoot = "/b", safeMode = false)
+        supervisor.forward(w1, originalId = "1", method = "getStats", params = null, scope = RequestScope("/a", false))
+        supervisor.forward(w2, originalId = "1", method = "getStats", params = null, scope = RequestScope("/b", false))
 
         // Correlation ids are assigned in order: c0 -> w1, c1 -> w2.
         transports.deliver("""{"type":"response","id":"c1","data":{"for":"w2"}}""")
@@ -97,13 +97,15 @@ class SidecarSupervisorTest {
         supervisor.start()
         transports.deliver(hello())
 
-        supervisor.forward(w1, "1", "saveRule", JsonObject().apply { addProperty("markdown", "x") }, "/home/u/proj", safeMode = false)
+        supervisor.forward(w1, "1", "saveRule", JsonObject().apply { addProperty("markdown", "x") }, RequestScope("/home/u/proj", false))
 
         val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
         assertEquals("request", sent.get("type").asString)
         assertEquals("/home/u/proj", sent.get("projectRoot").asString)
         assertEquals(false, sent.get("safeMode").asBoolean)
         assertEquals("x", sent.getAsJsonObject("params").get("markdown").asString)
+        // No provider stamp unless one is supplied on the scope.
+        assertFalse(sent.has("provider"))
     }
 
     @Test
@@ -113,10 +115,74 @@ class SidecarSupervisorTest {
         supervisor.start()
         transports.deliver(hello())
 
-        supervisor.forward(w1, "1", "getAntiPatterns", null, "/home/u/proj", safeMode = true)
+        supervisor.forward(w1, "1", "getAntiPatterns", null, RequestScope("/home/u/proj", true))
 
         val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
         assertEquals(true, sent.get("safeMode").asBoolean)
+    }
+
+    @Test
+    fun `forward stamps the provider id and binary path when the scope carries one`() {
+        val w1 = RecordingClient("w1")
+        supervisor.registerClient(w1)
+        supervisor.start()
+        transports.deliver(hello())
+
+        supervisor.forward(
+            w1, "1", "generateRule", null,
+            RequestScope("/home/u/proj", false, ProviderStamp("claude", "/usr/local/bin/claude")),
+        )
+
+        val provider = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
+            .getAsJsonObject("provider")
+        assertEquals("claude", provider.get("id").asString)
+        assertEquals("/usr/local/bin/claude", provider.get("binaryPath").asString)
+    }
+
+    @Test
+    fun `a null project root does not suppress a present provider stamp`() {
+        val w1 = RecordingClient("w1")
+        supervisor.registerClient(w1)
+        supervisor.start()
+        transports.deliver(hello())
+
+        supervisor.forward(w1, "1", "generateRule", null, RequestScope(null, false, ProviderStamp("claude", "/bin/claude")))
+
+        val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
+        assertFalse("a null project root is omitted", sent.has("projectRoot"))
+        assertEquals("claude", sent.getAsJsonObject("provider").get("id").asString)
+    }
+
+    @Test
+    fun `two windows with different provider overrides each stamp their own provider`() {
+        val w1 = RecordingClient("w1")
+        val w2 = RecordingClient("w2")
+        supervisor.registerClient(w1)
+        supervisor.registerClient(w2)
+        supervisor.start()
+        transports.deliver(hello())
+
+        // The single shared sidecar serves both windows; each forwards its own
+        // resolved provider on the one stream (defends ADR 0004).
+        supervisor.forward(w1, "1", "generateRule", null, RequestScope("/a", false, ProviderStamp("claude", "/bin/claude")))
+        supervisor.forward(w2, "1", "explainOccurrence", null, RequestScope("/b", false, ProviderStamp("copilot", "/bin/copilot")))
+
+        val sent = transports.latest().sent.map { JsonParser.parseString(it).asJsonObject }
+            .filter { it.get("type").asString == "request" }
+        assertEquals("claude", sent[0].getAsJsonObject("provider").get("id").asString)
+        assertEquals("copilot", sent[1].getAsJsonObject("provider").get("id").asString)
+    }
+
+    @Test
+    fun `hostCall never carries a provider stamp`() {
+        supervisor.registerClient(RecordingClient("w1"))
+        supervisor.start()
+        transports.deliver(hello())
+
+        supervisor.hostCall("getLocalRulesPending", null, "/proj", safeMode = false) {}
+
+        val sent = JsonParser.parseString(transports.latest().sent.last()).asJsonObject
+        assertFalse(sent.has("provider"))
     }
 
     @Test
@@ -304,7 +370,7 @@ class SidecarSupervisorTest {
         supervisor.registerClient(w1)
         supervisor.start()
         transports.deliver(hello())
-        supervisor.forward(w1, "1", "getStats", null, null, safeMode = false)
+        supervisor.forward(w1, "1", "getStats", null, RequestScope(null, false))
 
         supervisor.unregisterClient(w1)
         // A late response for the gone window is simply dropped (no crash).

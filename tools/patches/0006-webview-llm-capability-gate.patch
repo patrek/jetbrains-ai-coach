@@ -1,8 +1,7 @@
 diff --git a/sidecar/vendor/webview/shared.ts b/sidecar/vendor/webview/shared.ts
-index 3d0190f..14ed4b5 100644
 --- a/sidecar/vendor/webview/shared.ts
 +++ b/sidecar/vendor/webview/shared.ts
-@@ -12,7 +12,26 @@ export const vscode = acquireVsCodeApi();
+@@ -12,7 +12,51 @@
  let rpcId = 0;
  const RPC_TIMEOUT_MS = 120_000;
  const RPC_LLM_TIMEOUT_MS = 300_000;
@@ -17,61 +16,148 @@ index 3d0190f..14ed4b5 100644
 +  'generateLearningQuiz', 'generateLearningResources', 'generateCodeComparison', 'generateDidYouKnow',
 +  'triageSkills', 'triageCatalog', 'reviewContextFiles',
 +]);
-+// Friendly, MCP-pointing message surfaced wherever an LLM feature is invoked
-+// while the host has no LLM — both proactively (gated before the request) and
-+// reactively (translating the sidecar's `llm-unavailable`).
++// The subset wired to a selectable CLI inference provider (cli-provider plan).
++// Unlike the other LLM methods (which degrade on a single `capabilities.llm`
++// flag), these gate on `capabilities.provider.status` so each provider state —
++// not-selected / not-consented / not-installed / unauthenticated — shows a
++// distinct, actionable message; an `active` provider lets the call through.
++const PROVIDER_METHODS = new Set(['generateRule', 'explainOccurrence']);
++// Friendly, MCP-pointing message surfaced wherever an LLM feature with no
++// provider backend is invoked while the host has no LLM — both proactively
++// (gated before the request) and reactively (translating `llm-unavailable`).
 +const LLM_UNAVAILABLE_MESSAGE =
 +  'This needs a language model, which the JetBrains plugin doesn\'t include — ' +
 +  'ask Claude Code to do it directly. (Your usage analytics are available there ' +
 +  'too, via the AI Engineer Coach MCP tools.)';
-+// Host LLM availability, learned once via `getCapabilities`. `undefined` until
-+// known — until then LLM calls fall back to the reactive error translation.
++// Per provider state (pre-flight) and per runtime failure reason, the specific
++// guidance shown for a provider-backed method. Keys cover both the capability
++// statuses and the sidecar's `ProviderFailureReason` values.
++const PROVIDER_MESSAGES: Record<string, string> = {
++  'not-selected': 'No AI provider is selected. Pick one in Settings ▸ Tools ▸ AI Usage Coach (or per project) to enable this.',
++  'not-consented': 'Enabling an AI provider needs a one-time data-egress acknowledgment in Settings before it can run.',
++  'not-installed': 'The selected AI provider CLI isn\'t installed or wasn\'t found on your PATH.',
++  'unauthenticated': 'The selected AI provider CLI is installed but not signed in. Authenticate its CLI, then retry.',
++  'timeout': 'The AI provider timed out before returning a result. Try again.',
++  'cli-error': 'The AI provider CLI reported an error.',
++  'bad-output': 'The AI provider returned unusable output. Try again.',
++};
++function providerMessage(reasonOrStatus: string | undefined): string {
++  return (reasonOrStatus && PROVIDER_MESSAGES[reasonOrStatus]) || 'The selected AI provider is unavailable.';
++}
++// Host LLM availability, learned via `getCapabilities`. `undefined` until known —
++// until then LLM calls fall back to the reactive error translation.
 +let llmAvailable: boolean | undefined;
++// The resolved provider status for this window (`active` / `not-selected` /
++// `not-consented` / `not-installed` / `unauthenticated`); refreshed before each
++// provider-backed call so a settings change takes effect without a host push.
++let providerStatus: string | undefined;
  const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
  
  /**
-@@ -22,6 +41,12 @@ const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Err
+@@ -22,20 +66,55 @@
   */
  export function rpc<T = unknown>(method: string, params?: Record<string, unknown>): Promise<T> {
    return new Promise((resolve, reject) => {
-+    // Gate LLM-dependent methods once the host is known to lack an LLM (D6), so
-+    // the feature fails fast with a clear message instead of round-tripping.
+-    const id = String(++rpcId);
+-    const timeoutMs = LLM_METHODS.has(method) ? RPC_LLM_TIMEOUT_MS : RPC_TIMEOUT_MS;
+-    const timer = setTimeout(() => {
+-      pending.delete(id);
+-      reject(new Error(`RPC timeout: ${method}`));
+-    }, timeoutMs);
+-    pending.set(id, {
+-      resolve: (v: unknown) => { clearTimeout(timer); resolve(v as T); },
+-      reject: (e: Error) => { clearTimeout(timer); reject(e); },
+-    });
+-    vscode.postMessage({ type: 'request', id, method, params });
++    const send = () => {
++      const id = String(++rpcId);
++      const timeoutMs = LLM_METHODS.has(method) ? RPC_LLM_TIMEOUT_MS : RPC_TIMEOUT_MS;
++      const timer = setTimeout(() => {
++        pending.delete(id);
++        reject(new Error(`RPC timeout: ${method}`));
++      }, timeoutMs);
++      pending.set(id, {
++        resolve: (v: unknown) => { clearTimeout(timer); resolve(v as T); },
++        reject: (e: Error) => { clearTimeout(timer); reject(e); },
++      });
++      vscode.postMessage({ type: 'request', id, method, params });
++    };
++
++    // Provider-backed methods (cli-provider plan): re-poll capabilities so a
++    // settings change since load is honored (there is no host->webview push),
++    // then gate on the resolved provider status with an actionable message.
++    if (PROVIDER_METHODS.has(method)) {
++      refreshCapabilities().finally(() => {
++        if (providerStatus !== undefined && providerStatus !== 'active') {
++          reject(new Error(providerMessage(providerStatus)));
++        } else {
++          send();
++        }
++      });
++      return;
++    }
++    // Other LLM-dependent methods degrade once the host is known to lack an LLM
++    // (D6), failing fast with a clear message instead of round-tripping.
 +    if (llmAvailable === false && LLM_METHODS.has(method)) {
 +      reject(new Error(LLM_UNAVAILABLE_MESSAGE));
 +      return;
 +    }
-     const id = String(++rpcId);
-     const timeoutMs = LLM_METHODS.has(method) ? RPC_LLM_TIMEOUT_MS : RPC_TIMEOUT_MS;
-     const timer = setTimeout(() => {
-@@ -60,7 +85,8 @@ export function initMessageListener(
++    send();
+   });
+ }
+ 
++/** Fetch host capabilities and cache the LLM flag + provider status. Best-effort:
++ *  on failure the last-known values are kept. Never gates itself (getCapabilities
++ *  is neither an LLM nor a provider method), so it cannot recurse. */
++function refreshCapabilities(): Promise<void> {
++  return rpc<{ llm?: boolean; provider?: { status?: string } }>('getCapabilities')
++    .then((caps) => {
++      llmAvailable = caps?.llm === true;
++      providerStatus = caps?.provider?.status;
++    })
++    .catch(() => { /* keep last-known availability */ });
++}
++
+ /**
+  * Run multiple RPC calls in parallel with individual error isolation.
+  * Failed calls resolve to their fallback value instead of crashing the entire batch.
+@@ -60,7 +139,18 @@
        const { resolve, reject } = pending.get(msg.id as string)!;
        pending.delete(msg.id as string);
        if (msg.data && typeof msg.data === 'object' && (msg.data as Record<string, unknown>).error) {
 -        reject(new Error(String((msg.data as Record<string, unknown>).error)));
-+        const error = String((msg.data as Record<string, unknown>).error);
-+        reject(new Error(error === 'llm-unavailable' ? LLM_UNAVAILABLE_MESSAGE : error));
++        const data = msg.data as Record<string, unknown>;
++        const error = String(data.error);
++        // A provider failure comes back as `llm-unavailable` + a specific
++        // `reason` (timeout / cli-error / bad-output / …); surface that. A bare
++        // `llm-unavailable` (no provider, or one of the other 10 methods) keeps
++        // the generic "ask Claude Code" guidance.
++        const reason = typeof data.reason === 'string' ? data.reason : undefined;
++        reject(new Error(
++          error === 'llm-unavailable'
++            ? (reason ? providerMessage(reason) : LLM_UNAVAILABLE_MESSAGE)
++            : error,
++        ));
        } else {
          resolve(msg.data);
        }
-@@ -84,6 +110,13 @@ export function initMessageListener(
+@@ -84,6 +174,12 @@
        onDataReady(msg.currentWorkspace as string);
      }
    });
 +
 +  // Learn host capabilities once so LLM-dependent features can be gated before
-+  // they ever fire a request (decision D6). Best-effort: on failure we leave
-+  // availability unknown and fall back to translating `llm-unavailable`.
-+  void rpc<{ llm?: boolean }>('getCapabilities')
-+    .then((caps) => { llmAvailable = caps?.llm === true; })
-+    .catch(() => { /* leave undefined; reactive translation still applies */ });
++  // they ever fire a request (decision D6); provider-backed methods additionally
++  // re-poll per call. Best-effort: on failure we leave availability unknown and
++  // fall back to translating `llm-unavailable`.
++  void refreshCapabilities();
  }
  
  /* ---- Chart.js import (bundled via esbuild) ---- */
 diff --git a/sidecar/vendor/webview/page-learning.ts b/sidecar/vendor/webview/page-learning.ts
-index 9b287ec..3280b3e 100644
 --- a/sidecar/vendor/webview/page-learning.ts
 +++ b/sidecar/vendor/webview/page-learning.ts
-@@ -552,8 +552,9 @@ async function loadDidYouKnowAsync(state: LearningState): Promise<void> {
+@@ -552,8 +552,9 @@
      }
      saveState(state);
      render(renderDidYouKnowHtml(facts), el);
@@ -83,7 +169,7 @@ index 9b287ec..3280b3e 100644
    }
  }
  
-@@ -657,9 +658,10 @@ function loadResourcesAsync(state: LearningState, languages: { label: string; lo
+@@ -657,9 +658,10 @@
      state.cachedResourceKey = key;
      saveState(state);
      render(renderResourcesHtml(resources), el);

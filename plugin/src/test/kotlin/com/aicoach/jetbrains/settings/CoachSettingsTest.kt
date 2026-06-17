@@ -1,6 +1,7 @@
 package com.aicoach.jetbrains.settings
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 /** Pure tests for [CoachSettings]'s excluded-directory normalization, exercised
@@ -42,5 +43,31 @@ class CoachSettingsTest {
         val settings = CoachSettings()
         settings.nodePath = "  /usr/local/bin/node  "
         assertEquals("/usr/local/bin/node", settings.nodePath)
+    }
+
+    @Test
+    fun `provider defaults to disabled and not consented`() {
+        val settings = CoachSettings()
+        assertEquals("", settings.providerId)
+        assertFalse(settings.providerEgressConsented)
+    }
+
+    @Test
+    fun `providerId trims on write`() {
+        val settings = CoachSettings()
+        settings.providerId = "  claude  "
+        assertEquals("claude", settings.providerId)
+    }
+
+    @Test
+    fun `provider selection and consent round-trip through the serialized state`() {
+        val source = CoachSettings()
+        source.providerId = "copilot"
+        source.providerEgressConsented = true
+
+        val restored = CoachSettings()
+        restored.loadState(source.state)
+        assertEquals("copilot", restored.providerId)
+        assertEquals(true, restored.providerEgressConsented)
     }
 }

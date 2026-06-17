@@ -103,6 +103,16 @@ val buildSidecar by tasks.registering(Exec::class) {
     description = "Builds the Node sidecar and webview bundles via esbuild."
     workingDir = sidecarDir
     commandLine(npmExecutable, "run", "build")
+    // Declare the bundler's inputs and outputs so Gradle tracks the producer →
+    // consumer relationship: when src/ or vendor/ change, the bundle is rebuilt
+    // AND `processResources` (which reads `sidecarDist`) is correctly invalidated.
+    // Without the `outputs.dir`, processResources could stay UP-TO-DATE and pack a
+    // stale bundle into the JAR (the extraction fingerprint then reuses it).
+    inputs.dir(sidecarDir.resolve("src")).withPropertyName("sidecarSrc")
+    inputs.dir(sidecarDir.resolve("vendor")).withPropertyName("sidecarVendor")
+    inputs.file(sidecarDir.resolve("esbuild.mjs")).withPropertyName("esbuildConfig")
+    inputs.file(sidecarDir.resolve("package.json")).withPropertyName("sidecarManifest")
+    outputs.dir(sidecarDist).withPropertyName("sidecarDist")
 }
 
 tasks.processResources {
