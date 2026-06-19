@@ -39,6 +39,7 @@ class CliProviderDetector(
     private val os: OsKind = NodeDetector.currentOs(),
     private val probe: (Path, List<String>) -> ProbeOutcome = ::runCommand,
     private val exists: (Path) -> Boolean = { Files.exists(it) },
+    private val readFile: (Path) -> String? = { runCatching { it.toFile().readText() }.getOrNull() },
 ) {
 
     /** Outcome of launching a candidate binary with some arguments. */
@@ -96,12 +97,13 @@ class CliProviderDetector(
     }
 
     private fun detect(providerId: String): Availability {
-        if (providerId != "claude" && providerId != "copilot") {
+        if (providerId != "claude" && providerId != "copilot" && providerId != "codex") {
             return Availability(null, Status.NOT_INSTALLED)
         }
         val binary = findBinary(providerId) ?: return Availability(null, Status.NOT_INSTALLED)
         val authed = when (providerId) {
             "claude" -> isClaudeAuthenticated(binary)
+            "codex" -> isCodexAuthenticated()
             else -> hasCopilotToken()
         }
         return Availability(binary.toString(), if (authed) Status.ACTIVE else Status.UNAUTHENTICATED)
@@ -126,6 +128,32 @@ class CliProviderDetector(
     /** Copilot has no `auth status`; treat any GitHub token env var as authed. */
     private fun hasCopilotToken(): Boolean =
         COPILOT_TOKEN_ENV.any { !env[it].isNullOrBlank() }
+
+    /**
+     * Codex has no `auth status` subcommand. Authentication is detected by:
+     * 1. OPENAI_API_KEY env var set → authenticated.
+     * 2. ~/.codex/auth.json exists with a non-null, non-empty `tokens.access_token`
+     *    (ChatGPT OAuth flow) OR a non-null `OPENAI_API_KEY` field → authenticated.
+     * Real auth failures (expired tokens) surface post-run as `cli-error` from the
+     * adapter's stderr scan — the same fallback as Copilot's env-token approach.
+     */
+    private fun isCodexAuthenticated(): Boolean {
+        if (!env["OPENAI_API_KEY"].isNullOrBlank()) return true
+        val authFile = userHome.resolve(".codex/auth.json")
+        if (!exists(authFile)) return false
+        val text = readFile(authFile) ?: return false
+        return try {
+            val json = com.google.gson.JsonParser.parseString(text).asJsonObject
+            val apiKeyField = json.get("OPENAI_API_KEY")?.takeIf { !it.isJsonNull }?.asString
+            if (!apiKeyField.isNullOrBlank()) return true
+            val tokens = json.getAsJsonObject("tokens") ?: return false
+            val accessToken = tokens.get("access_token")?.takeIf { !it.isJsonNull }?.asString
+            !accessToken.isNullOrBlank()
+        } catch (e: Exception) {
+            log.debug("Could not read ~/.codex/auth.json for Codex auth detection", e)
+            false
+        }
+    }
 
     /** Ordered, de-duped absolute candidate paths for [name]. */
     private fun candidates(name: String): List<Path> {

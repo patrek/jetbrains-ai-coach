@@ -25,6 +25,7 @@ class CliProviderDetectorTest {
         responses: Map<Pair<String, List<String>>, ProbeOutcome> = emptyMap(),
         probes: MutableList<Pair<String, List<String>>>? = null,
         os: OsKind = OsKind.LINUX,
+        authFiles: Map<String, String> = emptyMap(),
     ): CliProviderDetector = CliProviderDetector(
         env = env,
         userHome = home,
@@ -33,7 +34,8 @@ class CliProviderDetectorTest {
             probes?.add(p.toString() to args)
             responses[p.toString() to args] ?: ProbeOutcome.Unavailable
         },
-        exists = { it.toString() in existing },
+        exists = { it.toString() in existing || it.toString() in authFiles },
+        readFile = { authFiles[it.toString()] },
     )
 
     private fun version(stdout: String = "1.0.0") = ProbeOutcome.Exited(0, stdout)
@@ -111,6 +113,59 @@ class CliProviderDetectorTest {
         )
         // Copilot has no auth-status subcommand: it is never probed for auth.
         assertEquals(Availability("/usr/bin/copilot", Status.UNAUTHENTICATED), d.availability("copilot"))
+    }
+
+    @Test
+    fun `codex installed with OPENAI_API_KEY env var is ACTIVE`() {
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin", "OPENAI_API_KEY" to "sk-test123"),
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        assertEquals(Availability("/usr/bin/codex", Status.ACTIVE), d.availability("codex"))
+    }
+
+    @Test
+    fun `codex installed with valid auth json access_token is ACTIVE`() {
+        val authJson = """{"tokens":{"access_token":"tok_abc123","refresh_token":"ref_xyz"}}"""
+        val d = detector(
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
+        )
+        assertEquals(Status.ACTIVE, d.availability("codex").status)
+    }
+
+    @Test
+    fun `codex installed with valid auth json OPENAI_API_KEY field is ACTIVE`() {
+        val authJson = """{"OPENAI_API_KEY":"sk-test456"}"""
+        val d = detector(
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
+        )
+        assertEquals(Status.ACTIVE, d.availability("codex").status)
+    }
+
+    @Test
+    fun `codex installed without API key or auth json is UNAUTHENTICATED`() {
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin"),
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        assertEquals(Availability("/usr/bin/codex", Status.UNAUTHENTICATED), d.availability("codex"))
+    }
+
+    @Test
+    fun `codex with null access_token in auth json is UNAUTHENTICATED`() {
+        val authJson = """{"tokens":{"access_token":null}}"""
+        val d = detector(
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
+        )
+        assertEquals(Status.UNAUTHENTICATED, d.availability("codex").status)
     }
 
     @Test

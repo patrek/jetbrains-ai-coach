@@ -12,6 +12,10 @@ class ProviderLabelsTest {
     fun `global labels round-trip id to display and back`() {
         assertEquals("Claude Code", ProviderLabels.displayFor("claude"))
         assertEquals("claude", ProviderLabels.idFor("Claude Code"))
+        assertEquals("GitHub Copilot CLI", ProviderLabels.displayFor("copilot"))
+        assertEquals("copilot", ProviderLabels.idFor("GitHub Copilot CLI"))
+        assertEquals("Codex CLI", ProviderLabels.displayFor("codex"))
+        assertEquals("codex", ProviderLabels.idFor("Codex CLI"))
         assertEquals("", ProviderLabels.idFor("Disabled"))
     }
 
@@ -30,6 +34,7 @@ class ProviderLabelsTest {
     fun `override labels map the inherit option to an empty id`() {
         assertEquals("", ProviderLabels.overrideIdFor("Use global default"))
         assertEquals("copilot", ProviderLabels.overrideIdFor("GitHub Copilot CLI"))
+        assertEquals("codex", ProviderLabels.overrideIdFor("Codex CLI"))
         assertEquals("Use global default", ProviderLabels.overrideDisplayFor(""))
     }
 }

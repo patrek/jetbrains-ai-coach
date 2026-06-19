@@ -17,8 +17,9 @@
 
 import { claudeProvider } from './providers/claude-provider';
 import { copilotProvider } from './providers/copilot-provider';
+import { codexProvider } from './providers/codex-provider';
 
-export type ProviderId = 'claude' | 'copilot';
+export type ProviderId = 'claude' | 'copilot' | 'codex';
 
 /**
  * Why a provider run did not produce usable text. Each maps to a distinct,
@@ -27,7 +28,7 @@ export type ProviderId = 'claude' | 'copilot';
  */
 export type ProviderFailureReason =
   | 'not-installed' // spawn ENOENT — the binary is gone
-  | 'unauthenticated' // detected auth failure (Claude only, from stderr)
+  | 'unauthenticated' // detected auth failure (Claude/Codex, from stderr)
   | 'timeout' // adapter-imposed deadline hit; child killed
   | 'cli-error' // non-zero exit / generic spawn failure / oversize prompt
   | 'bad-output'; // exit 0 but output unparseable, empty, or unusable
@@ -66,6 +67,7 @@ export const COPILOT_MAX_PROMPT_BYTES = 96 * 1024;
 const PROVIDERS: Record<ProviderId, CliProvider> = {
   claude: claudeProvider,
   copilot: copilotProvider,
+  codex: codexProvider,
 };
 
 /**
@@ -73,5 +75,5 @@ const PROVIDERS: Record<ProviderId, CliProvider> = {
  * string to {@link ProviderId} and returns `undefined` for anything else.
  */
 export function resolveProvider(id: string): CliProvider | undefined {
-  return id === 'claude' || id === 'copilot' ? PROVIDERS[id] : undefined;
+  return id === 'claude' || id === 'copilot' || id === 'codex' ? PROVIDERS[id] : undefined;
 }
