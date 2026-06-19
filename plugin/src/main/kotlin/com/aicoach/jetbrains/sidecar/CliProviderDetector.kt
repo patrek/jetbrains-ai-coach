@@ -39,6 +39,7 @@ class CliProviderDetector(
     private val os: OsKind = NodeDetector.currentOs(),
     private val probe: (Path, List<String>) -> ProbeOutcome = ::runCommand,
     private val exists: (Path) -> Boolean = { Files.exists(it) },
+    private val readFile: (Path) -> String? = { runCatching { it.toFile().readText() }.getOrNull() },
 ) {
 
     /** Outcome of launching a candidate binary with some arguments. */
@@ -140,8 +141,8 @@ class CliProviderDetector(
         if (!env["OPENAI_API_KEY"].isNullOrBlank()) return true
         val authFile = userHome.resolve(".codex/auth.json")
         if (!exists(authFile)) return false
+        val text = readFile(authFile) ?: return false
         return try {
-            val text = authFile.toFile().readText()
             val json = com.google.gson.JsonParser.parseString(text).asJsonObject
             val apiKeyField = json.get("OPENAI_API_KEY")?.takeIf { !it.isJsonNull }?.asString
             if (!apiKeyField.isNullOrBlank()) return true

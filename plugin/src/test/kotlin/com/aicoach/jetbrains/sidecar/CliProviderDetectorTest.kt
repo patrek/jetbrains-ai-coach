@@ -25,6 +25,7 @@ class CliProviderDetectorTest {
         responses: Map<Pair<String, List<String>>, ProbeOutcome> = emptyMap(),
         probes: MutableList<Pair<String, List<String>>>? = null,
         os: OsKind = OsKind.LINUX,
+        authFiles: Map<String, String> = emptyMap(),
     ): CliProviderDetector = CliProviderDetector(
         env = env,
         userHome = home,
@@ -33,7 +34,8 @@ class CliProviderDetectorTest {
             probes?.add(p.toString() to args)
             responses[p.toString() to args] ?: ProbeOutcome.Unavailable
         },
-        exists = { it.toString() in existing },
+        exists = { it.toString() in existing || it.toString() in authFiles },
+        readFile = { authFiles[it.toString()] },
     )
 
     private fun version(stdout: String = "1.0.0") = ProbeOutcome.Exited(0, stdout)
@@ -127,64 +129,22 @@ class CliProviderDetectorTest {
     fun `codex installed with valid auth json access_token is ACTIVE`() {
         val authJson = """{"tokens":{"access_token":"tok_abc123","refresh_token":"ref_xyz"}}"""
         val d = detector(
-            env = mapOf("PATH" to "/usr/bin"),
-            existing = setOf("/usr/bin/codex", "/home/u/.codex/auth.json"),
+            existing = setOf("/usr/bin/codex"),
             responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
         )
-        // Mock the file read by creating a detector with a custom exists that includes the auth file
-        val customDetector = CliProviderDetector(
-            env = mapOf("PATH" to "/usr/bin"),
-            userHome = home,
-            os = OsKind.LINUX,
-            probe = { p, args ->
-                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
-                else ProbeOutcome.Unavailable
-            },
-            exists = { path ->
-                when (path.toString()) {
-                    "/usr/bin/codex" -> true
-                    "/home/u/.codex/auth.json" -> {
-                        // Write the auth file for the test
-                        path.toFile().parentFile?.mkdirs()
-                        path.toFile().writeText(authJson)
-                        true
-                    }
-                    else -> false
-                }
-            },
-        )
-        assertEquals(Status.ACTIVE, customDetector.availability("codex").status)
+        assertEquals(Status.ACTIVE, d.availability("codex").status)
     }
 
     @Test
     fun `codex installed with valid auth json OPENAI_API_KEY field is ACTIVE`() {
         val authJson = """{"OPENAI_API_KEY":"sk-test456"}"""
         val d = detector(
-            env = mapOf("PATH" to "/usr/bin"),
-            existing = setOf("/usr/bin/codex", "/home/u/.codex/auth.json"),
+            existing = setOf("/usr/bin/codex"),
             responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
         )
-        val customDetector = CliProviderDetector(
-            env = mapOf("PATH" to "/usr/bin"),
-            userHome = home,
-            os = OsKind.LINUX,
-            probe = { p, args ->
-                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
-                else ProbeOutcome.Unavailable
-            },
-            exists = { path ->
-                when (path.toString()) {
-                    "/usr/bin/codex" -> true
-                    "/home/u/.codex/auth.json" -> {
-                        path.toFile().parentFile?.mkdirs()
-                        path.toFile().writeText(authJson)
-                        true
-                    }
-                    else -> false
-                }
-            },
-        )
-        assertEquals(Status.ACTIVE, customDetector.availability("codex").status)
+        assertEquals(Status.ACTIVE, d.availability("codex").status)
     }
 
     @Test
@@ -200,27 +160,12 @@ class CliProviderDetectorTest {
     @Test
     fun `codex with null access_token in auth json is UNAUTHENTICATED`() {
         val authJson = """{"tokens":{"access_token":null}}"""
-        val customDetector = CliProviderDetector(
-            env = mapOf("PATH" to "/usr/bin"),
-            userHome = home,
-            os = OsKind.LINUX,
-            probe = { p, args ->
-                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
-                else ProbeOutcome.Unavailable
-            },
-            exists = { path ->
-                when (path.toString()) {
-                    "/usr/bin/codex" -> true
-                    "/home/u/.codex/auth.json" -> {
-                        path.toFile().parentFile?.mkdirs()
-                        path.toFile().writeText(authJson)
-                        true
-                    }
-                    else -> false
-                }
-            },
+        val d = detector(
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+            authFiles = mapOf("/home/u/.codex/auth.json" to authJson),
         )
-        assertEquals(Status.UNAUTHENTICATED, customDetector.availability("codex").status)
+        assertEquals(Status.UNAUTHENTICATED, d.availability("codex").status)
     }
 
     @Test

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { codexProvider } from './codex-provider';
-import { CODEX_MAX_PROMPT_BYTES, PROVIDER_TIMEOUT_MS } from '../cli-provider';
+import { PROVIDER_TIMEOUT_MS } from '../cli-provider';
 
 /** A spawn() stand-in: an EventEmitter with stream-shaped stdio + kill record. */
 class FakeChild extends EventEmitter {
@@ -171,14 +171,6 @@ describe('codexProvider', () => {
     const p = codexProvider.run('test', { binaryPath: '/bin/codex', spawn });
     child.exit(2, '', 'internal error');
     expect(await p).toEqual({ ok: false, reason: 'cli-error' });
-  });
-
-  it('rejects an oversize prompt with cli-error without spawning', async () => {
-    const spawn = vi.fn() as unknown as typeof import('node:child_process').spawn;
-    const huge = 'a'.repeat(CODEX_MAX_PROMPT_BYTES + 1);
-    const result = await codexProvider.run(huge, { binaryPath: '/bin/codex', spawn });
-    expect(result).toEqual({ ok: false, reason: 'cli-error' });
-    expect(spawn).not.toHaveBeenCalled();
   });
 
   it('kills a timed-out child (SIGTERM then SIGKILL) and reports timeout', async () => {

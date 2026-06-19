@@ -10,7 +10,7 @@
  */
 
 import type { CliProvider, ProviderResult, ProviderRunOptions } from '../cli-provider';
-import { PROVIDER_TIMEOUT_MS, CODEX_MAX_PROMPT_BYTES } from '../cli-provider';
+import { PROVIDER_TIMEOUT_MS } from '../cli-provider';
 import { runChild } from './spawn-child';
 
 /** stderr phrasings that mean "the CLI is installed but not authenticated". */
@@ -65,12 +65,8 @@ export const codexProvider: CliProvider = {
   id: 'codex',
   
   async run(prompt: string, opts: ProviderRunOptions): Promise<ProviderResult> {
-    // Guard against ARG_MAX-style failures; stdin path makes this unlikely but
-    // apply the same cap for consistency with Copilot.
-    if (Buffer.byteLength(prompt, 'utf8') > CODEX_MAX_PROMPT_BYTES) {
-      return { ok: false, reason: 'cli-error' };
-    }
-
+    // The prompt rides in via stdin (the trailing `-`), so there is no ARG_MAX
+    // limit to guard against — same as the Claude adapter, which is uncapped.
     const outcome = await runChild({
       binaryPath: opts.binaryPath,
       args: ['exec', '--json', '--ephemeral', '--skip-git-repo-check', '-s', 'read-only', '-'],
