@@ -114,6 +114,116 @@ class CliProviderDetectorTest {
     }
 
     @Test
+    fun `codex installed with OPENAI_API_KEY env var is ACTIVE`() {
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin", "OPENAI_API_KEY" to "sk-test123"),
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        assertEquals(Availability("/usr/bin/codex", Status.ACTIVE), d.availability("codex"))
+    }
+
+    @Test
+    fun `codex installed with valid auth json access_token is ACTIVE`() {
+        val authJson = """{"tokens":{"access_token":"tok_abc123","refresh_token":"ref_xyz"}}"""
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin"),
+            existing = setOf("/usr/bin/codex", "/home/u/.codex/auth.json"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        // Mock the file read by creating a detector with a custom exists that includes the auth file
+        val customDetector = CliProviderDetector(
+            env = mapOf("PATH" to "/usr/bin"),
+            userHome = home,
+            os = OsKind.LINUX,
+            probe = { p, args ->
+                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
+                else ProbeOutcome.Unavailable
+            },
+            exists = { path ->
+                when (path.toString()) {
+                    "/usr/bin/codex" -> true
+                    "/home/u/.codex/auth.json" -> {
+                        // Write the auth file for the test
+                        path.toFile().parentFile?.mkdirs()
+                        path.toFile().writeText(authJson)
+                        true
+                    }
+                    else -> false
+                }
+            },
+        )
+        assertEquals(Status.ACTIVE, customDetector.availability("codex").status)
+    }
+
+    @Test
+    fun `codex installed with valid auth json OPENAI_API_KEY field is ACTIVE`() {
+        val authJson = """{"OPENAI_API_KEY":"sk-test456"}"""
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin"),
+            existing = setOf("/usr/bin/codex", "/home/u/.codex/auth.json"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        val customDetector = CliProviderDetector(
+            env = mapOf("PATH" to "/usr/bin"),
+            userHome = home,
+            os = OsKind.LINUX,
+            probe = { p, args ->
+                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
+                else ProbeOutcome.Unavailable
+            },
+            exists = { path ->
+                when (path.toString()) {
+                    "/usr/bin/codex" -> true
+                    "/home/u/.codex/auth.json" -> {
+                        path.toFile().parentFile?.mkdirs()
+                        path.toFile().writeText(authJson)
+                        true
+                    }
+                    else -> false
+                }
+            },
+        )
+        assertEquals(Status.ACTIVE, customDetector.availability("codex").status)
+    }
+
+    @Test
+    fun `codex installed without API key or auth json is UNAUTHENTICATED`() {
+        val d = detector(
+            env = mapOf("PATH" to "/usr/bin"),
+            existing = setOf("/usr/bin/codex"),
+            responses = mapOf(("/usr/bin/codex" to listOf("--version")) to version()),
+        )
+        assertEquals(Availability("/usr/bin/codex", Status.UNAUTHENTICATED), d.availability("codex"))
+    }
+
+    @Test
+    fun `codex with null access_token in auth json is UNAUTHENTICATED`() {
+        val authJson = """{"tokens":{"access_token":null}}"""
+        val customDetector = CliProviderDetector(
+            env = mapOf("PATH" to "/usr/bin"),
+            userHome = home,
+            os = OsKind.LINUX,
+            probe = { p, args ->
+                if (p.toString() == "/usr/bin/codex" && args == listOf("--version")) version()
+                else ProbeOutcome.Unavailable
+            },
+            exists = { path ->
+                when (path.toString()) {
+                    "/usr/bin/codex" -> true
+                    "/home/u/.codex/auth.json" -> {
+                        path.toFile().parentFile?.mkdirs()
+                        path.toFile().writeText(authJson)
+                        true
+                    }
+                    else -> false
+                }
+            },
+        )
+        assertEquals(Status.UNAUTHENTICATED, customDetector.availability("codex").status)
+    }
+
+    @Test
     fun `an unknown provider id is NOT_INSTALLED`() {
         assertEquals(Availability(null, Status.NOT_INSTALLED), detector().availability("gemini"))
     }

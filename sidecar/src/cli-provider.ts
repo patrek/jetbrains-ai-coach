@@ -17,8 +17,9 @@
 
 import { claudeProvider } from './providers/claude-provider';
 import { copilotProvider } from './providers/copilot-provider';
+import { codexProvider } from './providers/codex-provider';
 
-export type ProviderId = 'claude' | 'copilot';
+export type ProviderId = 'claude' | 'copilot' | 'codex';
 
 /**
  * Why a provider run did not produce usable text. Each maps to a distinct,
@@ -63,9 +64,16 @@ export const PROVIDER_TIMEOUT_MS = 60_000;
  */
 export const COPILOT_MAX_PROMPT_BYTES = 96 * 1024;
 
+/**
+ * Codex uses stdin (like Claude) but we apply the same conservative cap as
+ * Copilot for consistency and to guard against OS-level limits.
+ */
+export const CODEX_MAX_PROMPT_BYTES = 96 * 1024;
+
 const PROVIDERS: Record<ProviderId, CliProvider> = {
   claude: claudeProvider,
   copilot: copilotProvider,
+  codex: codexProvider,
 };
 
 /**
@@ -73,5 +81,5 @@ const PROVIDERS: Record<ProviderId, CliProvider> = {
  * string to {@link ProviderId} and returns `undefined` for anything else.
  */
 export function resolveProvider(id: string): CliProvider | undefined {
-  return id === 'claude' || id === 'copilot' ? PROVIDERS[id] : undefined;
+  return id === 'claude' || id === 'copilot' || id === 'codex' ? PROVIDERS[id] : undefined;
 }

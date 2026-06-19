@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveProvider, COPILOT_MAX_PROMPT_BYTES, PROVIDER_TIMEOUT_MS } from './cli-provider';
 import { claudeProvider } from './providers/claude-provider';
 import { copilotProvider } from './providers/copilot-provider';
+import { codexProvider } from './providers/codex-provider';
 
 /** A spawn() stand-in: an EventEmitter with stream-shaped stdio + kill record. */
 class FakeChild extends EventEmitter {
@@ -50,9 +51,10 @@ afterEach(() => {
 });
 
 describe('resolveProvider', () => {
-  it('resolves the two known provider ids', () => {
+  it('resolves the three known provider ids', () => {
     expect(resolveProvider('claude')).toBe(claudeProvider);
     expect(resolveProvider('copilot')).toBe(copilotProvider);
+    expect(resolveProvider('codex')).toBe(codexProvider);
   });
 
   it('returns undefined for an unknown id', () => {

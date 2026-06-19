@@ -9,9 +9,11 @@ package com.aicoach.jetbrains.settings
 object ProviderLabels {
     const val CLAUDE = "claude"
     const val COPILOT = "copilot"
+    const val CODEX = "codex"
 
     private const val CLAUDE_LABEL = "Claude Code"
     private const val COPILOT_LABEL = "GitHub Copilot CLI"
+    private const val CODEX_LABEL = "Codex CLI"
     private const val DISABLED = "Disabled"
     private const val INHERIT = "Use global default"
 
@@ -33,6 +35,7 @@ object ProviderLabels {
         "" to emptyLabel,
         CLAUDE to CLAUDE_LABEL,
         COPILOT to COPILOT_LABEL,
+        CODEX to CODEX_LABEL,
     )
 
     private fun idIn(map: Map<String, String>, display: String?): String =
